@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:markdown-todos.helloWorld"
+        "onCommand:markdown-todos.increaseTodo"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "markdown-todos.helloWorld",
-				"title": "Hello World"
+				"command": "markdown-todos.increaseTodo",
+				"title": "increase markdown TODO level!"
 			}
 		]
 	},

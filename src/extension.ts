@@ -10,16 +10,37 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "markdown-todos" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('markdown-todos.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello Worlds from markdown-todos!!!!');
+	let increaseTodo = vscode.commands.registerCommand('markdown-todos.increaseTodo', async () => {
+		let editor = vscode.window.activeTextEditor;
+		if (!editor) { return; }
+
+		let lineIndex = editor.selection.active.line;
+		let lineText = editor.document.lineAt(lineIndex).text;
+
+		// Return if it's not a header
+		if (!lineText.match(/^\s*#/)) { return; }
+
+		const match = /(^\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
+		if (!match) { return; }
+		const [leading, octos, trailing, firstWord] = match.slice(1);
+		return await editor.edit((editBuilder) => {
+			const startPos = (leading + octos + trailing).length;
+			const endPos = (leading + octos + trailing + firstWord).length + 1;
+			const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
+			switch (firstWord) {
+				case 'TODO':
+					editBuilder.replace(replaceRange, 'DONE ');
+					break;
+				case 'DONE':
+					editBuilder.replace(replaceRange, '');
+					break;
+				default:
+					editBuilder.insert(new vscode.Position(lineIndex, startPos), 'TODO ');
+			}
+		});
 	});
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(increaseTodo);
 }
 
 // this method is called when your extension is deactivated
