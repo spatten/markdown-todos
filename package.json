@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:markdown-todos.increaseTodo"
+    "onCommand:markdown-todos.increaseTodo"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -18,6 +18,14 @@
 			{
 				"command": "markdown-todos.increaseTodo",
 				"title": "increase markdown TODO level!"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "markdown-todos.increaseTodo",
+				"key": "shift+right",
+				"mac": "shift+right",
+				"when": "editorTextFocus && !editorReadonly && editorLangId == markdown"
 			}
 		]
 	},
