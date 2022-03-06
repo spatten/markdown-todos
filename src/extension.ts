@@ -50,8 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const workLogs = entries.filter(entry => entry.match(/\d\d\d\d-\d\d-\d\d\.md/));
 		const currentLog = workLogs.sort()[0];
 		let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
-		let success = await vscode.commands.executeCommand('vscode.open', uri);
-		if (!success) { return; }
+		await vscode.commands.executeCommand('vscode.open', uri);
 		vscode.commands.executeCommand('editor.foldAll');
 	});
 
