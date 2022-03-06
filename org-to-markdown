@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+input_file = ARGV[0]
+output_file = input_file.sub(/\.org$/, ".md")
+puts "writing result to #{output_file}"
+
+org_text = File.read(input_file)
+markdown_lines = org_text.each_line.map do |line|
+  line.sub!(/\A(\s*)(\*+) /) do
+    leading_space = Regexp.last_match[1]
+    stars = Regexp.last_match[2]
+    "#{leading_space}#{'#' * stars.length} "
+  end
+  line.sub!(/\#\+begin_src/, "```")
+  line.sub!(/\#\+end_src/, "```")
+  line
+end
+
+File.write(output_file, markdown_lines.join)
