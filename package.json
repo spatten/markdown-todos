@@ -12,7 +12,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:markdown-todos.increaseTodo"
+    "onCommand:markdown-todos.increaseTodo",
+    "onCommand:markdown-todos.openCurrentWorklog"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -35,7 +36,11 @@
     "commands": [
       {
         "command": "markdown-todos.increaseTodo",
-        "title": "increase markdown TODO level!"
+        "title": "increase markdown TODO level"
+      },
+      {
+        "command": "markdown-todos.openCurrentWorklog",
+        "title": "open the current markdown worklog"
       }
     ],
     "keybindings": [
