@@ -51,6 +51,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const currentLog = workLogs.sort()[0];
 		let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
 		let success = await vscode.commands.executeCommand('vscode.open', uri);
+		if (!success) { return; }
+		vscode.commands.executeCommand('editor.foldAll');
 	});
 
 	context.subscriptions.push(openCurrentWorklog);
