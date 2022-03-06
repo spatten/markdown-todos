@@ -1,0 +1,14 @@
+{
+  "fileTypes": [
+    "md",
+    "markdown"
+  ],
+  "injectionSelector": "markup.heading.markdown",
+  "patterns": [
+    {
+      "name": "comment.line.markdown-todos",
+      "match": "\\bDONE\\b"
+    }
+  ],
+  "scopeName": "markdown-todos.done"
+}

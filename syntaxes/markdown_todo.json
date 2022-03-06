@@ -1,0 +1,14 @@
+{
+  "fileTypes": [
+    "md",
+    "markdown"
+  ],
+  "injectionSelector": "markup.heading.markdown",
+  "patterns": [
+    {
+      "name": "invalid.illegal.markdown-todos",
+      "match": "\\bTODO\\b"
+    }
+  ],
+  "scopeName": "markdown-todos.todo"
+}

@@ -21,14 +21,14 @@
         "injectTo": [
           "text.html.markdown"
         ],
-        "scopeName": "markdown-todos.TODO",
+        "scopeName": "markdown-todos.todo",
         "path": "./syntaxes/markdown_todo.json"
       },
       {
         "injectTo": [
           "text.html.markdown"
         ],
-        "scopeName": "markdown-todos.DONE",
+        "scopeName": "markdown-todos.done",
         "path": "./syntaxes/markdown_done.json"
       }
     ],
