@@ -103,6 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
     let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
     await vscode.commands.executeCommand('vscode.open', uri);
     vscode.commands.executeCommand('editor.foldAll');
+    vscode.commands.executeCommand('workbench.action.pinEditor');
   });
   context.subscriptions.push(openCurrentWorklog);
 }
