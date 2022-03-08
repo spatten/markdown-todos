@@ -98,8 +98,8 @@ export function activate(context: vscode.ExtensionContext) {
   let openCurrentWorklog = vscode.commands.registerCommand('markdown-todos.openCurrentWorklog', async () => {
     const worklogDir = "/Users/scott/Dropbox/work-logs";
     const entries = await fs.promises.readdir(worklogDir);
-    const workLogs = entries.filter(entry => entry.match(/\d\d\d\d-\d\d-\d\d\.md/));
-    const currentLog = workLogs.sort()[0];
+    const workLogs = entries.filter(entry => entry.match(/^\d\d\d\d-\d\d-\d\d\.md$/));
+    const currentLog = workLogs.sort().reverse()[0];
     let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
     await vscode.commands.executeCommand('vscode.open', uri);
     vscode.commands.executeCommand('editor.foldAll');
