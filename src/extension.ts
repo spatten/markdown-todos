@@ -4,6 +4,19 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number) => {
+  const d = new Date();
+  const completedAt = `CLOSED: [${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}]`
+  editBuilder.insert(new vscode.Position(currentLine + 1, 0), `${completedAt}\n`);
+};
+
+const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, currentLine: number) => {
+  let lineText = editor.document.lineAt(currentLine + 1).text;
+  if (lineText.match(/^\s*CLOSED: \[\d\d\d\d-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}\]\s*$/)) {
+    editBuilder.delete(new vscode.Range(new vscode.Position(currentLine + 1, 0), new vscode.Position(currentLine + 2, 0)));
+  }
+};
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -13,8 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "markdown-todos" is now active!');
 
   let increaseTodo = vscode.commands.registerCommand('markdown-todos.increaseTodo', async () => {
-    let editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
+    const editor = vscode.window.activeTextEditor as vscode.TextEditor;
 
     let lineIndex = editor.selection.active.line;
     let lineText = editor.document.lineAt(lineIndex).text;
@@ -32,12 +44,15 @@ export function activate(context: vscode.ExtensionContext) {
       switch (firstWord) {
         case 'TODO':
           editBuilder.replace(replaceRange, 'DONE ');
+          insertCompletedAt(editBuilder, lineIndex);
           break;
         case 'DONE':
           editBuilder.replace(replaceRange, '');
+          deleteCompletedAt(editor, editBuilder, lineIndex);
           break;
         default:
           editBuilder.insert(new vscode.Position(lineIndex, startPos), 'TODO ');
+          deleteCompletedAt(editor, editBuilder, lineIndex);
       }
     });
   });
@@ -45,8 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(increaseTodo);
 
   let decreaseTodo = vscode.commands.registerCommand('markdown-todos.decreaseTodo', async () => {
-    let editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
+    const editor = vscode.window.activeTextEditor as vscode.TextEditor;
 
     let lineIndex = editor.selection.active.line;
     let lineText = editor.document.lineAt(lineIndex).text;
@@ -64,12 +78,15 @@ export function activate(context: vscode.ExtensionContext) {
       switch (firstWord) {
         case 'TODO':
           editBuilder.replace(replaceRange, '');
+          deleteCompletedAt(editor, editBuilder, lineIndex);
           break;
         case 'DONE':
           editBuilder.replace(replaceRange, 'TODO ');
+          deleteCompletedAt(editor, editBuilder, lineIndex);
           break;
         default:
           editBuilder.insert(new vscode.Position(lineIndex, startPos), 'DONE ');
+          insertCompletedAt(editBuilder, lineIndex);
       }
     });
   });
