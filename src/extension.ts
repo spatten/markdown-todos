@@ -4,9 +4,10 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const TODO_TYPES = ["", "TODO", "DONE"];
 const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number) => {
   const d = new Date();
-  const completedAt = `CLOSED: [${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}]`
+  const completedAt = `CLOSED: [${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}]`;
   editBuilder.insert(new vscode.Position(currentLine + 1, 0), `${completedAt}\n`);
 };
 
@@ -15,6 +16,58 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   if (lineText.match(/^\s*CLOSED: \[\d\d\d\d-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}\]\s*$/)) {
     editBuilder.delete(new vscode.Range(new vscode.Position(currentLine + 1, 0), new vscode.Position(currentLine + 2, 0)));
   }
+};
+
+const changeTodo = async (change: -1 | 1) => {
+  const editor = vscode.window.activeTextEditor as vscode.TextEditor;
+
+  let lineIndex = editor.selection.active.line;
+  let lineText = editor.document.lineAt(lineIndex).text;
+
+  // Return if it's not a header
+  if (!lineText.match(/^\s*#/)) { return; }
+
+  const match = /(^\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
+  if (!match) { return; }
+  const [leading, octos, trailing, firstWord] = match.slice(1);
+
+  // If firstWord is not 'TODO' or 'DONE', then it's '', the first entry in TODO_TYPES
+  let currentIndex = TODO_TYPES.indexOf(firstWord);
+  if (currentIndex === -1) {
+    currentIndex = 0;
+  }
+
+  // find the next word, looping around in either direction
+  let nextIndex = currentIndex + change;
+  if (nextIndex >= TODO_TYPES.length) {
+    nextIndex = 0;
+  }
+  if (nextIndex < 0) {
+    nextIndex = TODO_TYPES.length - 1;
+  }
+  let nextWord = TODO_TYPES[nextIndex];
+  if (nextWord !== '') {
+    nextWord = nextWord + ' ';
+  }
+
+  return await editor.edit((editBuilder) => {
+    const startPos = (leading + octos + trailing).length;
+    const endPos = startPos + firstWord.length + 1;
+    const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
+
+    // if the current word is not TODO or DONE, then we want to insert TODO or DONE
+    // otherwise we want to replace the current TODO or DONE with nextWord
+    if (TODO_TYPES.indexOf(firstWord) < 1) {
+      editBuilder.insert(new vscode.Position(lineIndex, startPos), nextWord);
+    } else {
+      editBuilder.replace(replaceRange, nextWord);
+    }
+    if (nextWord === 'DONE ') {
+      insertCompletedAt(editBuilder, lineIndex);
+    } else {
+      deleteCompletedAt(editor, editBuilder, lineIndex);
+    }
+  });
 };
 
 // this method is called when your extension is activated
@@ -26,71 +79,13 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "markdown-todos" is now active!');
 
   let increaseTodo = vscode.commands.registerCommand('markdown-todos.increaseTodo', async () => {
-    const editor = vscode.window.activeTextEditor as vscode.TextEditor;
-
-    let lineIndex = editor.selection.active.line;
-    let lineText = editor.document.lineAt(lineIndex).text;
-
-    // Return if it's not a header
-    if (!lineText.match(/^\s*#/)) { return; }
-
-    const match = /(^\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
-    if (!match) { return; }
-    const [leading, octos, trailing, firstWord] = match.slice(1);
-    return await editor.edit((editBuilder) => {
-      const startPos = (leading + octos + trailing).length;
-      const endPos = (leading + octos + trailing + firstWord).length + 1;
-      const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
-      switch (firstWord) {
-        case 'TODO':
-          editBuilder.replace(replaceRange, 'DONE ');
-          insertCompletedAt(editBuilder, lineIndex);
-          break;
-        case 'DONE':
-          editBuilder.replace(replaceRange, '');
-          deleteCompletedAt(editor, editBuilder, lineIndex);
-          break;
-        default:
-          editBuilder.insert(new vscode.Position(lineIndex, startPos), 'TODO ');
-          deleteCompletedAt(editor, editBuilder, lineIndex);
-      }
-    });
+    await changeTodo(1);
   });
-
   context.subscriptions.push(increaseTodo);
 
   let decreaseTodo = vscode.commands.registerCommand('markdown-todos.decreaseTodo', async () => {
-    const editor = vscode.window.activeTextEditor as vscode.TextEditor;
-
-    let lineIndex = editor.selection.active.line;
-    let lineText = editor.document.lineAt(lineIndex).text;
-
-    // Return if it's not a header
-    if (!lineText.match(/^\s*#/)) { return; }
-
-    const match = /(^\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
-    if (!match) { return; }
-    const [leading, octos, trailing, firstWord] = match.slice(1);
-    return await editor.edit((editBuilder) => {
-      const startPos = (leading + octos + trailing).length;
-      const endPos = (leading + octos + trailing + firstWord).length + 1;
-      const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
-      switch (firstWord) {
-        case 'TODO':
-          editBuilder.replace(replaceRange, '');
-          deleteCompletedAt(editor, editBuilder, lineIndex);
-          break;
-        case 'DONE':
-          editBuilder.replace(replaceRange, 'TODO ');
-          deleteCompletedAt(editor, editBuilder, lineIndex);
-          break;
-        default:
-          editBuilder.insert(new vscode.Position(lineIndex, startPos), 'DONE ');
-          insertCompletedAt(editBuilder, lineIndex);
-      }
-    });
+    await changeTodo(-1);
   });
-
   context.subscriptions.push(decreaseTodo);
 
   let openCurrentWorklog = vscode.commands.registerCommand('markdown-todos.openCurrentWorklog', async () => {
@@ -102,7 +97,6 @@ export function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand('vscode.open', uri);
     vscode.commands.executeCommand('editor.foldAll');
   });
-
   context.subscriptions.push(openCurrentWorklog);
 }
 
