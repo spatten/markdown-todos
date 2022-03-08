@@ -19,7 +19,8 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
 };
 
 const changeTodo = async (change: -1 | 1) => {
-  const editor = vscode.window.activeTextEditor as vscode.TextEditor;
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { throw new Error("no active editor"); }
 
   let lineIndex = editor.selection.active.line;
   let lineText = editor.document.lineAt(lineIndex).text;
