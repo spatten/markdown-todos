@@ -5,9 +5,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const TODO_TYPES = ["", "TODO", "DONE"];
-const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number) => {
+const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number, indent: number) => {
   const d = new Date();
-  const completedAt = `CLOSED: [${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}]`;
+  const padding = ' '.repeat(indent);
+  const completedAt = `${padding}CLOSED: [${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}]`;
   editBuilder.insert(new vscode.Position(currentLine + 1, 0), `${completedAt}\n`);
 };
 
@@ -69,7 +70,7 @@ const changeTodo = async (change: -1 | 1) => {
 
     // add or delete the completedAt text
     if (nextWord === 'DONE ') {
-      insertCompletedAt(editBuilder, lineIndex);
+      insertCompletedAt(editBuilder, lineIndex, leading.length + octos.length + 1);
     } else {
       deleteCompletedAt(editor, editBuilder, lineIndex);
     }
