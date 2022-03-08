@@ -27,7 +27,8 @@ const changeTodo = async (change: -1 | 1) => {
   // Return if it's not a header
   if (!lineText.match(/^\s*#/)) { return; }
 
-  const match = /(^\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
+  // match (leading space)(#-signs)(space after #-signs)(first word)
+  const match = /^(\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
   if (!match) { return; }
   const [leading, octos, trailing, firstWord] = match.slice(1);
 
@@ -37,7 +38,7 @@ const changeTodo = async (change: -1 | 1) => {
     currentIndex = 0;
   }
 
-  // find the next word, looping around in either direction
+  // find the next TODO word, looping around in either direction
   let nextIndex = currentIndex + change;
   if (nextIndex >= TODO_TYPES.length) {
     nextIndex = 0;
@@ -45,6 +46,8 @@ const changeTodo = async (change: -1 | 1) => {
   if (nextIndex < 0) {
     nextIndex = TODO_TYPES.length - 1;
   }
+
+  // We need to insert an extra space if nextWord is not ''
   let nextWord = TODO_TYPES[nextIndex];
   if (nextWord !== '') {
     nextWord = nextWord + ' ';
@@ -55,13 +58,15 @@ const changeTodo = async (change: -1 | 1) => {
     const endPos = startPos + firstWord.length + 1;
     const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
 
-    // if the current word is not TODO or DONE, then we want to insert TODO or DONE
+    // if the firsst word of the header is not TODO or DONE, then we want to insert TODO or DONE
     // otherwise we want to replace the current TODO or DONE with nextWord
     if (TODO_TYPES.indexOf(firstWord) < 1) {
       editBuilder.insert(new vscode.Position(lineIndex, startPos), nextWord);
     } else {
       editBuilder.replace(replaceRange, nextWord);
     }
+
+    // add or delete the completedAt text
     if (nextWord === 'DONE ') {
       insertCompletedAt(editBuilder, lineIndex);
     } else {
