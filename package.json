@@ -13,6 +13,7 @@
   ],
   "activationEvents": [
     "onCommand:markdown-todos.increaseTodo",
+    "onCommand:markdown-todos.decreaseTodo",
     "onCommand:markdown-todos.openCurrentWorklog"
   ],
   "main": "./out/extension.js",
@@ -39,6 +40,10 @@
         "title": "increase markdown TODO level"
       },
       {
+        "command": "markdown-todos.decreaseTodo",
+        "title": "decrease markdown TODO level"
+      },
+      {
         "command": "markdown-todos.openCurrentWorklog",
         "title": "open the current markdown worklog"
       }
@@ -48,6 +53,12 @@
         "command": "markdown-todos.increaseTodo",
         "key": "shift+right",
         "mac": "shift+right",
+        "when": "editorTextFocus && !editorReadonly && editorLangId == markdown"
+      },
+      {
+        "command": "markdown-todos.decreaseTodo",
+        "key": "shift+left",
+        "mac": "shift+left",
         "when": "editorTextFocus && !editorReadonly && editorLangId == markdown"
       }
     ]
