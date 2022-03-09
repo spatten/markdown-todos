@@ -19,11 +19,14 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const findHeader = (direction: 1 | -1): number => {
+const findHeader = (direction: 1 | -1, ignoreCurrent: boolean = false): number => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
   let lineIndex = editor.selection.active.line;
+  if (ignoreCurrent) {
+    lineIndex += direction;
+  }
   const lastLine = editor.document.lineCount;
   while (lineIndex >= 0 && lineIndex < lastLine) {
     let lineText = editor.document.lineAt(lineIndex).text;
@@ -35,9 +38,6 @@ const findHeader = (direction: 1 | -1): number => {
   return -1;
 };
 
-const findPreviousHeader = () => findHeader(-1);
-const findNextHeader = () => findHeader(1);
-
 const headerLevelForLine = (lineText: string): number => {
   // Return if it's not a header
   const matches = lineText.match(/^\s*(#+)/);
@@ -48,7 +48,7 @@ const headerLevelForLine = (lineText: string): number => {
 };
 
 let gotoHeader = (direction: 1 | -1) => {
-  const headerLine = findHeader(direction);
+  const headerLine = findHeader(direction, true);
 
   if (headerLine > 0) {
     const editor = vscode.window.activeTextEditor;
@@ -66,7 +66,7 @@ const changeTodo = async (change: -1 | 1) => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
-  let lineIndex = findPreviousHeader();
+  let lineIndex = findHeader(-1, false);
   if (lineIndex < 0) {
     return;
   }
