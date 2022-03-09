@@ -19,7 +19,7 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const findHeader = (direction: number): number => {
+const findHeader = (direction: 1 | -1): number => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
@@ -45,6 +45,21 @@ const headerLevelForLine = (lineText: string): number => {
     return 0;
   }
   return matches[1].length;
+};
+
+let gotoHeader = (direction: 1 | -1) => {
+  const headerLine = findHeader(direction);
+
+  if (headerLine > 0) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) { throw new Error("no active editor"); }
+    const position = editor.selection.active;
+    var newPosition = position.with(headerLine, 0);
+    var newSelection = new vscode.Selection(newPosition, newPosition);
+    editor.selection = newSelection;
+    var range = new vscode.Range(newPosition, newPosition);
+    editor.revealRange(range, vscode.TextEditorRevealType.Default);
+  }
 };
 
 const changeTodo = async (change: -1 | 1) => {
@@ -134,6 +149,16 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('workbench.action.pinEditor');
   });
   context.subscriptions.push(openCurrentWorklog);
+
+  let gotoPreviousHeader = vscode.commands.registerCommand('markdown-todos.gotoPreviousHeader', async () => {
+    gotoHeader(-1);
+  });
+  context.subscriptions.push(gotoPreviousHeader);
+
+  let gotoNextHeader = vscode.commands.registerCommand('markdown-todos.gotoNextHeader', async () => {
+    gotoHeader(1);
+  });
+  context.subscriptions.push(gotoNextHeader);
 }
 
 // this method is called when your extension is deactivated

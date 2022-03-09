@@ -14,7 +14,9 @@
   "activationEvents": [
     "onCommand:markdown-todos.increaseTodo",
     "onCommand:markdown-todos.decreaseTodo",
-    "onCommand:markdown-todos.openCurrentWorklog"
+    "onCommand:markdown-todos.openCurrentWorklog",
+    "onCommand:markdown-todos.gotoPreviousHeader",
+    "onCommand:markdown-todos.gotoNextHeader"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -46,6 +48,14 @@
       {
         "command": "markdown-todos.openCurrentWorklog",
         "title": "open the current markdown worklog"
+      },
+      {
+        "command": "markdown-todos.gotoPreviousHeader",
+        "title": "go to previous header in a markdown document"
+      },
+      {
+        "command": "markdown-todos.gotoNextHeader",
+        "title": "go to next header in a markdown document"
       }
     ],
     "keybindings": [
