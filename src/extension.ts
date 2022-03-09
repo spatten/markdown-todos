@@ -19,15 +19,43 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const changeTodo = async (change: -1 | 1) => {
+const findHeader = (direction: number): number => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
   let lineIndex = editor.selection.active.line;
-  let lineText = editor.document.lineAt(lineIndex).text;
+  const lastLine = editor.document.lineCount;
+  while (lineIndex >= 0 && lineIndex < lastLine) {
+    let lineText = editor.document.lineAt(lineIndex).text;
+    if (headerLevelForLine(lineText) > 0) {
+      return lineIndex;
+    }
+    lineIndex += direction;
+  }
+  return -1;
+};
 
+const findPreviousHeader = () => findHeader(-1);
+const findNextHeader = () => findHeader(1);
+
+const headerLevelForLine = (lineText: string): number => {
   // Return if it's not a header
-  if (!lineText.match(/^\s*#/)) { return; }
+  const matches = lineText.match(/^\s*(#+)/);
+  if (!matches) {
+    return 0;
+  }
+  return matches[1].length;
+};
+
+const changeTodo = async (change: -1 | 1) => {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { throw new Error("no active editor"); }
+
+  let lineIndex = findPreviousHeader();
+  if (lineIndex < 0) {
+    return;
+  }
+  let lineText = editor.document.lineAt(lineIndex).text;
 
   // match (leading space)(#-signs)(space after #-signs)(first word)
   const match = /^(\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
