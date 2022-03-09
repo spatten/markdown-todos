@@ -126,19 +126,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "markdown-todos" is now active!');
+  console.log('Congratulations, your extension "markdown-worklogs" is now active!');
 
-  let increaseTodo = vscode.commands.registerCommand('markdown-todos.increaseTodo', async () => {
+  let increaseTodo = vscode.commands.registerCommand('markdown-worklogs.increaseTodo', async () => {
     await changeTodo(1);
   });
   context.subscriptions.push(increaseTodo);
 
-  let decreaseTodo = vscode.commands.registerCommand('markdown-todos.decreaseTodo', async () => {
+  let decreaseTodo = vscode.commands.registerCommand('markdown-worklogs.decreaseTodo', async () => {
     await changeTodo(-1);
   });
   context.subscriptions.push(decreaseTodo);
 
-  let openCurrentWorklog = vscode.commands.registerCommand('markdown-todos.openCurrentWorklog', async () => {
+  let openCurrentWorklog = vscode.commands.registerCommand('markdown-worklogs.openCurrentWorklog', async () => {
     const worklogDir = "/Users/scott/Dropbox/work-logs";
     const entries = await fs.promises.readdir(worklogDir);
     const workLogs = entries.filter(entry => entry.match(/^\d\d\d\d-\d\d-\d\d\.md$/));
@@ -150,12 +150,12 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(openCurrentWorklog);
 
-  let gotoPreviousHeader = vscode.commands.registerCommand('markdown-todos.gotoPreviousHeader', async () => {
+  let gotoPreviousHeader = vscode.commands.registerCommand('markdown-worklogs.gotoPreviousHeader', async () => {
     gotoHeader(-1);
   });
   context.subscriptions.push(gotoPreviousHeader);
 
-  let gotoNextHeader = vscode.commands.registerCommand('markdown-todos.gotoNextHeader', async () => {
+  let gotoNextHeader = vscode.commands.registerCommand('markdown-worklogs.gotoNextHeader', async () => {
     gotoHeader(1);
   });
   context.subscriptions.push(gotoNextHeader);

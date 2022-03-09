@@ -1,22 +1,22 @@
 {
-  "name": "markdown-todos",
-  "displayName": "markdown-todos",
+  "name": "markdown-worklogs",
+  "displayName": "markdown-worklogs",
   "description": "Top-level TODO and DONE on your markdown headers",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.64.0"
   },
   "license": "MIT",
-  "repository": "https://github.com/spatten/markdown-todos",
+  "repository": "https://github.com/spatten/markdown-worklogs",
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onCommand:markdown-todos.increaseTodo",
-    "onCommand:markdown-todos.decreaseTodo",
-    "onCommand:markdown-todos.openCurrentWorklog",
-    "onCommand:markdown-todos.gotoPreviousHeader",
-    "onCommand:markdown-todos.gotoNextHeader"
+    "onCommand:markdown-worklogs.increaseTodo",
+    "onCommand:markdown-worklogs.decreaseTodo",
+    "onCommand:markdown-worklogs.openCurrentWorklog",
+    "onCommand:markdown-worklogs.gotoPreviousHeader",
+    "onCommand:markdown-worklogs.gotoNextHeader"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -25,48 +25,48 @@
         "injectTo": [
           "text.html.markdown"
         ],
-        "scopeName": "markdown-todos.todo",
+        "scopeName": "markdown-worklogs.todo",
         "path": "./syntaxes/markdown_todo.json"
       },
       {
         "injectTo": [
           "text.html.markdown"
         ],
-        "scopeName": "markdown-todos.done",
+        "scopeName": "markdown-worklogs.done",
         "path": "./syntaxes/markdown_done.json"
       }
     ],
     "commands": [
       {
-        "command": "markdown-todos.increaseTodo",
-        "title": "increase markdown TODO level"
+        "command": "markdown-worklogs.increaseTodo",
+        "title": "Markdown Work Logs: increase TODO level"
       },
       {
-        "command": "markdown-todos.decreaseTodo",
-        "title": "decrease markdown TODO level"
+        "command": "markdown-worklogs.decreaseTodo",
+        "title": "Markdown Work Logs: decrease TODO level"
       },
       {
-        "command": "markdown-todos.openCurrentWorklog",
-        "title": "open the current markdown worklog"
+        "command": "markdown-worklogs.openCurrentWorklog",
+        "title": "Markdown Work Logs: open the current worklog"
       },
       {
-        "command": "markdown-todos.gotoPreviousHeader",
-        "title": "go to previous header in a markdown document"
+        "command": "markdown-worklogs.gotoPreviousHeader",
+        "title": "Markdown Work Logs: go to previous header"
       },
       {
-        "command": "markdown-todos.gotoNextHeader",
-        "title": "go to next header in a markdown document"
+        "command": "markdown-worklogs.gotoNextHeader",
+        "title": "Markdown Work Logs: go to next header"
       }
     ],
     "keybindings": [
       {
-        "command": "markdown-todos.increaseTodo",
+        "command": "markdown-worklogs.increaseTodo",
         "key": "shift+right",
         "mac": "shift+right",
         "when": "editorTextFocus && !editorReadonly && editorLangId == markdown"
       },
       {
-        "command": "markdown-todos.decreaseTodo",
+        "command": "markdown-worklogs.decreaseTodo",
         "key": "shift+left",
         "mac": "shift+left",
         "when": "editorTextFocus && !editorReadonly && editorLangId == markdown"
