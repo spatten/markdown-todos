@@ -50,7 +50,7 @@ const headerLevelForLine = (lineText: string): number => {
 let gotoHeader = (direction: 1 | -1) => {
   const headerLine = findHeader(direction, true);
 
-  if (headerLine > 0) {
+  if (headerLine >= 0) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) { throw new Error("no active editor"); }
     const position = editor.selection.active;
