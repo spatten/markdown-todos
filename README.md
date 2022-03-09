@@ -1,4 +1,4 @@
-# markdown-todos README
+# markdown-worklogs README
 
 Adds "TODO" to headers in markdown files.
 

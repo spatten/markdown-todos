@@ -6,9 +6,9 @@
   "injectionSelector": "markup.heading.markdown",
   "patterns": [
     {
-      "name": "invalid.illegal.markdown-todos",
+      "name": "invalid.illegal.markdown-worklogs",
       "match": "\\bTODO\\b"
     }
   ],
-  "scopeName": "markdown-todos.todo"
+  "scopeName": "markdown-worklogs.todo"
 }

@@ -6,9 +6,9 @@
   "injectionSelector": "markup.heading.markdown",
   "patterns": [
     {
-      "name": "comment.line.markdown-todos",
+      "name": "comment.line.markdown-worklogs",
       "match": "\\bDONE\\b"
     }
   ],
-  "scopeName": "markdown-todos.done"
+  "scopeName": "markdown-worklogs.done"
 }
