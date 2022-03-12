@@ -85,7 +85,6 @@ let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
   const headerLine = findHeader({ direction, ignoreCurrent: true });
 
   if (headerLine >= 0) {
-    if (!editor) { throw new Error("no active editor"); }
     const position = editor.selection.active;
     var newPosition = new vscode.Position(headerLine, 0);
     var newSelection: vscode.Selection;
@@ -109,10 +108,7 @@ let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
   }
 };
 
-const changeTodo = async (change: -1 | 1) => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) { throw new Error("no active editor"); }
-
+const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, change: -1 | 1) => {
   let lineIndex = findHeader({ direction: -1, ignoreCurrent: false });
   if (lineIndex < 0) {
     return;
@@ -135,28 +131,26 @@ const changeTodo = async (change: -1 | 1) => {
     nextWord = nextWord + ' ';
   }
 
-  return await editor.edit((editBuilder) => {
-    const startPos = leadingSpace + level + trailingSpace;
-    // const startPos = (leading + octos + trailing).length;
-    const endPos = startPos + currentState.length + 1;
-    // const endPos = startPos + firstWord.length + 1;
-    const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
+  const startPos = leadingSpace + level + trailingSpace;
+  // const startPos = (leading + octos + trailing).length;
+  const endPos = startPos + currentState.length + 1;
+  // const endPos = startPos + firstWord.length + 1;
+  const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
 
-    // if the firsst word of the header is not TODO or DONE, then we want to insert TODO or DONE
-    // otherwise we want to replace the current TODO or DONE with nextWord
-    if (currentIndex < 1) {
-      editBuilder.insert(new vscode.Position(lineIndex, startPos), nextWord);
-    } else {
-      editBuilder.replace(replaceRange, nextWord);
-    }
+  // if the firsst word of the header is not TODO or DONE, then we want to insert TODO or DONE
+  // otherwise we want to replace the current TODO or DONE with nextWord
+  if (currentIndex < 1) {
+    editBuilder.insert(new vscode.Position(lineIndex, startPos), nextWord);
+  } else {
+    editBuilder.replace(replaceRange, nextWord);
+  }
 
-    // add or delete the completedAt text
-    if (nextWord === 'DONE ') {
-      insertCompletedAt(editBuilder, lineIndex, leadingSpace + level + 1);
-    } else {
-      deleteCompletedAt(editor, editBuilder, lineIndex);
-    }
-  });
+  // add or delete the completedAt text
+  if (nextWord === 'DONE ') {
+    insertCompletedAt(editBuilder, lineIndex, leadingSpace + level + 1);
+  } else {
+    deleteCompletedAt(editor, editBuilder, lineIndex);
+  }
 };
 
 const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, number], lastNonDONELine: number): Promise<number> => {
@@ -262,13 +256,13 @@ export function activate(context: vscode.ExtensionContext) {
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "markdown-worklogs" is now active!');
 
-  let increaseTodo = vscode.commands.registerCommand('markdown-worklogs.increaseTodo', async () => {
-    await changeTodo(1);
+  let increaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.increaseTodo', async (te, edit) => {
+    await changeTodo(te, edit, 1);
   });
   context.subscriptions.push(increaseTodo);
 
-  let decreaseTodo = vscode.commands.registerCommand('markdown-worklogs.decreaseTodo', async () => {
-    await changeTodo(-1);
+  let decreaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.decreaseTodo', async (te, edit) => {
+    await changeTodo(te, edit, -1);
   });
   context.subscriptions.push(decreaseTodo);
 
