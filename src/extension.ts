@@ -57,11 +57,16 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const findHeader = (direction: 1 | -1, ignoreCurrent: boolean = false): number => {
+const findHeader = ({ direction = 1, ignoreCurrent = false, startLine }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number }): number => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
-  let lineIndex = editor.selection.active.line;
+  let lineIndex;
+  if (startLine === undefined) {
+    lineIndex = editor.selection.active.line;
+  } else {
+    lineIndex = startLine;
+  }
   if (ignoreCurrent) {
     lineIndex += direction;
   }
@@ -77,7 +82,7 @@ const findHeader = (direction: 1 | -1, ignoreCurrent: boolean = false): number =
 };
 
 let gotoHeader = (direction: 1 | -1) => {
-  const headerLine = findHeader(direction, true);
+  const headerLine = findHeader({ direction, ignoreCurrent: true });
 
   if (headerLine >= 0) {
     const editor = vscode.window.activeTextEditor;
@@ -95,7 +100,7 @@ const changeTodo = async (change: -1 | 1) => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
 
-  let lineIndex = findHeader(-1, false);
+  let lineIndex = findHeader({ direction: -1, ignoreCurrent: false });
   if (lineIndex < 0) {
     return;
   }
@@ -157,21 +162,61 @@ const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, 
   return linesMoved;
 };
 
+const minHeaderLevelInSelection = (editor: vscode.TextEditor, firstLine: number, lastLine: number): number => {
+  let lineIndex = lastLine;
+  let minLevel: number = 9999;
+
+  let lineText = editor.document.lineAt(lineIndex).text;
+  const { level } = getHeaderInfo(lineText);
+  if (level > 0) {
+    minLevel = level;
+  }
+
+  while (lineIndex >= firstLine) {
+    lineIndex = findHeader({ direction: -1, ignoreCurrent: true, startLine: lineIndex });
+    console.log(`headerLine = ${lineIndex}`);
+    if (lineIndex >= firstLine) {
+      let lineText = editor.document.lineAt(lineIndex).text;
+      const { level } = getHeaderInfo(lineText);
+      if (level > 0 && level < minLevel) {
+        minLevel = level;
+      }
+    }
+  }
+  if (minLevel === 9999) {
+    minLevel = 1;
+  }
+  return minLevel;
+};
+
 // move all top-level DONE sections to the bottom of the file, maintaining their order
-const moveDoneToBottom = async function () {
+const moveAllDoneToBottom = async function () {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { throw new Error("no active editor"); }
-  const lastLine = editor.document.lineCount - 1;
+
+  // if there is a selection, then only search in the selection and sort the top-level
+  // of headers found in the selection.
+  // If there is no selection, then search the whole file and sort level-1 headers
+  var firstLine = 0;
+  var lastLine = editor.document.lineCount - 1;
+  var topHeaderLevel = 1;
+  if (editor.selection.start.line !== editor.selection.end.line) {
+    console.log(`we have a selection`);
+    firstLine = editor.selection.start.line;
+    lastLine = editor.selection.end.line;
+    topHeaderLevel = minHeaderLevelInSelection(editor, firstLine, lastLine);
+    console.log(`firstLine: ${firstLine}, lastLine: ${lastLine}, min header level: ${topHeaderLevel}`);
+  }
 
   // get a list of the line ranges for all top-level DONE entries
   // Also, find the last line that is not part of a DONE entry
   let currentLastLineInDone = lastLine;
   let lastNonDONELine = -1;
   let doneEntries: [number, number][] = [];
-  for (let lineIndex = lastLine; lineIndex >= 0; lineIndex--) {
+  for (let lineIndex = lastLine; lineIndex >= firstLine; lineIndex--) {
     const lineText = editor.document.lineAt(lineIndex).text;
     const headerInfo = getHeaderInfo(lineText);
-    if (headerInfo.level !== 1) { // not a top-level header, so just set last line if necessary
+    if (headerInfo.level !== topHeaderLevel) { // not a top-level header, so just set last line if necessary
       if (currentLastLineInDone === -1) {
         currentLastLineInDone = lineIndex;
       }
@@ -237,7 +282,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(gotoNextHeader);
 
   let sortDoneToBottom = vscode.commands.registerCommand('markdown-worklogs.sortDoneToBottom', async () => {
-    moveDoneToBottom();
+    moveAllDoneToBottom();
   });
   context.subscriptions.push(sortDoneToBottom);
 }
