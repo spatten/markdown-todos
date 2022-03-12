@@ -110,6 +110,7 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
   if (lineIndex < 0) {
     return;
   }
+
   let lineText = editor.document.lineAt(lineIndex).text;
   const { leadingSpace, level, trailingSpace, todoState: currentState, todoIndex: currentIndex } = getHeaderInfo(lineText);
 
@@ -129,9 +130,7 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
   }
 
   const startPos = leadingSpace + level + trailingSpace;
-  // const startPos = (leading + octos + trailing).length;
   const endPos = startPos + currentState.length + 1;
-  // const endPos = startPos + firstWord.length + 1;
   const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
 
   // if the firsst word of the header is not TODO or DONE, then we want to insert TODO or DONE
@@ -150,6 +149,9 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
   }
 };
 
+// Used by moveAllDoneToBottom
+// given a range of lines in doneEntry, move those lines below the line given in lastNonDONELine
+// We need to make our own edit builder here as we need to actually run each moveEntryToBottomedit before the next one is run
 const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, number], lastNonDONELine: number): Promise<number> => {
   let linesMoved = 0;
   const res = await editor.edit((editBuilder) => {
@@ -166,6 +168,8 @@ const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, 
   return linesMoved;
 };
 
+// Used by moveAllDoneToBottom
+// find the minimim header level in the currently selected text
 const minHeaderLevelInSelection = (editor: vscode.TextEditor, firstLine: number, lastLine: number): number => {
   let lineIndex = lastLine;
   let minLevel: number = 9999;
