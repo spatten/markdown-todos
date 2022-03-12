@@ -197,10 +197,7 @@ const minHeaderLevelInSelection = (editor: vscode.TextEditor, firstLine: number,
 };
 
 // move all top-level DONE sections to the bottom of the file, maintaining their order
-const moveAllDoneToBottom = async function () {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) { throw new Error("no active editor"); }
-
+const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
   // if there is a selection, then only search in the selection and sort the top-level
   // of headers found in the selection.
   // If there is no selection, then search the whole file and sort level-1 headers
@@ -288,8 +285,8 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(gotoNextHeader);
 
-  let sortDoneToBottom = vscode.commands.registerCommand('markdown-worklogs.sortDoneToBottom', async () => {
-    moveAllDoneToBottom();
+  let sortDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortDoneToBottom', async (te) => {
+    moveAllDoneToBottom(te);
   });
   context.subscriptions.push(sortDoneToBottom);
 }
