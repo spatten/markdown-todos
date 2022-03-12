@@ -146,9 +146,7 @@ const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, 
   const res = await editor.edit((editBuilder) => {
     const replaceRange = new vscode.Range(new vscode.Position(doneEntry[0], 0), new vscode.Position(doneEntry[1] + 1, 0));
     const doneText = editor.document.getText(replaceRange);
-    console.log(`moving ${doneText}\ncurrentRange: ${doneEntry}. New start line: ${lastNonDONELine + 1}`);
     if (doneEntry[0] >= lastNonDONELine) {
-      console.log(`actually, we're already at the end. Not moving`);
       linesMoved = 0;
       return;
     }
@@ -191,13 +189,10 @@ const moveDoneToBottom = async function () {
       currentLastLineInDone = -1;
     }
   }
-  console.log(`DONE entries:\n${JSON.stringify(doneEntries)}\nlastNonDONELine: ${lastNonDONELine}`);
 
   // now, start moving the DONE entries down below lastNonDONELine
   for (const doneEntry of doneEntries) {
-    console.log(`moving doneEntry ${doneEntry}`);
     const linesMoved = await moveEntryToBottom(editor, doneEntry, lastNonDONELine);
-    console.log(`lines moved: ${linesMoved}`);
     lastNonDONELine -= linesMoved;
   }
 };
