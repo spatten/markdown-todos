@@ -57,10 +57,7 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const findHeader = ({ direction = 1, ignoreCurrent = false, startLine }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number }): number => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) { throw new Error("no active editor"); }
-
+const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number }): number => {
   let lineIndex;
   if (startLine === undefined) {
     lineIndex = editor.selection.active.line;
@@ -82,7 +79,7 @@ const findHeader = ({ direction = 1, ignoreCurrent = false, startLine }: { direc
 };
 
 let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
-  const headerLine = findHeader({ direction, ignoreCurrent: true });
+  const headerLine = findHeader(editor, { direction, ignoreCurrent: true });
 
   if (headerLine >= 0) {
     const position = editor.selection.active;
@@ -109,7 +106,7 @@ let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
 };
 
 const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, change: -1 | 1) => {
-  let lineIndex = findHeader({ direction: -1, ignoreCurrent: false });
+  let lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: false });
   if (lineIndex < 0) {
     return;
   }
@@ -180,7 +177,7 @@ const minHeaderLevelInSelection = (editor: vscode.TextEditor, firstLine: number,
   }
 
   while (lineIndex >= firstLine) {
-    lineIndex = findHeader({ direction: -1, ignoreCurrent: true, startLine: lineIndex });
+    lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: true, startLine: lineIndex });
     console.log(`headerLine = ${lineIndex}`);
     if (lineIndex >= firstLine) {
       let lineText = editor.document.lineAt(lineIndex).text;
