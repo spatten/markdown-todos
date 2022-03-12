@@ -290,6 +290,30 @@ export function activate(context: vscode.ExtensionContext) {
     moveAllDoneToBottom(te);
   });
   context.subscriptions.push(sortDoneToBottom);
+
+  let findInWorklogs = vscode.commands.registerCommand('markdown-worklogs.findInWorklogs', async () => {
+    const editor = vscode.window.activeTextEditor;
+    let searchText = '';
+    if (editor && !editor.selection.isEmpty) {
+      searchText = editor.document.getText(editor.selection);
+    } else {
+      searchText = await vscode.window.showInputBox({
+        placeHolder: "Search query",
+        prompt: "Search my snippets on Codever",
+        value: '',
+      }) || '';
+    }
+
+    // 'workbench.action.findInFiles' or 'search.action.openEditor'. They both take the same params
+    vscode.commands.executeCommand('workbench.action.findInFiles', {
+      query: searchText,
+      triggerSearch: true,
+      matchWholeWord: true,
+      isCaseSensitive: true,
+      filesToInclude: '~/Dropbox/work-logs',
+    });
+  });
+  context.subscriptions.push(findInWorklogs);
 }
 
 // this method is called when your extension is deactivated
