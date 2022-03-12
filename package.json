@@ -16,7 +16,8 @@
     "onCommand:markdown-worklogs.decreaseTodo",
     "onCommand:markdown-worklogs.openCurrentWorklog",
     "onCommand:markdown-worklogs.gotoPreviousHeader",
-    "onCommand:markdown-worklogs.gotoNextHeader"
+    "onCommand:markdown-worklogs.gotoNextHeader",
+    "onCommand:markdown-worklogs.sortDoneToBottom"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -63,6 +64,10 @@
       {
         "command": "markdown-worklogs.gotoNextHeader",
         "title": "Markdown Work Logs: go to next header"
+      },
+      {
+        "command": "markdown-worklogs.sortDoneToBottom",
+        "title": "Markdown Work Logs: move all top-level DONE items to bottom of file"
       }
     ],
     "keybindings": [

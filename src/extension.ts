@@ -141,6 +141,67 @@ const changeTodo = async (change: -1 | 1) => {
   });
 };
 
+const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, number], lastNonDONELine: number): Promise<number> => {
+  let linesMoved = 0;
+  const res = await editor.edit((editBuilder) => {
+    const replaceRange = new vscode.Range(new vscode.Position(doneEntry[0], 0), new vscode.Position(doneEntry[1] + 1, 0));
+    const doneText = editor.document.getText(replaceRange);
+    console.log(`moving ${doneText}\ncurrentRange: ${doneEntry}. New start line: ${lastNonDONELine + 1}`);
+    if (doneEntry[0] >= lastNonDONELine) {
+      console.log(`actually, we're already at the end. Not moving`);
+      linesMoved = 0;
+      return;
+    }
+    editBuilder.replace(replaceRange, '');
+    editBuilder.insert(new vscode.Position(lastNonDONELine + 1, 0), doneText);
+    linesMoved = doneEntry[1] - doneEntry[0] + 1;
+  });
+  return linesMoved;
+};
+
+// move all top-level DONE sections to the bottom of the file, maintaining their order
+const moveDoneToBottom = async function () {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) { throw new Error("no active editor"); }
+  const lastLine = editor.document.lineCount - 1;
+
+  // get a list of the line ranges for all top-level DONE entries
+  // Also, find the last line that is not part of a DONE entry
+  let currentLastLineInDone = lastLine;
+  let lastNonDONELine = -1;
+  let doneEntries: [number, number][] = [];
+  for (let lineIndex = lastLine; lineIndex >= 0; lineIndex--) {
+    const lineText = editor.document.lineAt(lineIndex).text;
+    const headerInfo = getHeaderInfo(lineText);
+    if (headerInfo.level !== 1) { // not a top-level header, so just set last line if necessary
+      if (currentLastLineInDone === -1) {
+        currentLastLineInDone = lineIndex;
+      }
+    } else if (headerInfo.todoState === 'DONE') { // a DONE header
+      // single line DONE case
+      if (currentLastLineInDone === -1) {
+        currentLastLineInDone = lineIndex;
+      }
+      doneEntries.push([lineIndex, currentLastLineInDone]);
+      currentLastLineInDone = -1;
+    } else { // a non-DONE header
+      if (lastNonDONELine === -1) {
+        lastNonDONELine = currentLastLineInDone === -1 ? lineIndex : currentLastLineInDone;
+      }
+      currentLastLineInDone = -1;
+    }
+  }
+  console.log(`DONE entries:\n${JSON.stringify(doneEntries)}\nlastNonDONELine: ${lastNonDONELine}`);
+
+  // now, start moving the DONE entries down below lastNonDONELine
+  for (const doneEntry of doneEntries) {
+    console.log(`moving doneEntry ${doneEntry}`);
+    const linesMoved = await moveEntryToBottom(editor, doneEntry, lastNonDONELine);
+    console.log(`lines moved: ${linesMoved}`);
+    lastNonDONELine -= linesMoved;
+  }
+};
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -179,6 +240,11 @@ export function activate(context: vscode.ExtensionContext) {
     gotoHeader(1);
   });
   context.subscriptions.push(gotoNextHeader);
+
+  let sortDoneToBottom = vscode.commands.registerCommand('markdown-worklogs.sortDoneToBottom', async () => {
+    moveDoneToBottom();
+  });
+  context.subscriptions.push(sortDoneToBottom);
 }
 
 // this method is called when your extension is deactivated
