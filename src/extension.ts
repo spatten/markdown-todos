@@ -81,17 +81,25 @@ const findHeader = ({ direction = 1, ignoreCurrent = false, startLine }: { direc
   return -1;
 };
 
-let gotoHeader = (direction: 1 | -1) => {
+let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
   const headerLine = findHeader({ direction, ignoreCurrent: true });
 
   if (headerLine >= 0) {
-    const editor = vscode.window.activeTextEditor;
     if (!editor) { throw new Error("no active editor"); }
     const position = editor.selection.active;
-    var newPosition = position.with(headerLine, 0);
-    var newSelection = new vscode.Selection(newPosition, newPosition);
+    var newPosition = new vscode.Position(headerLine, 0);
+    var newSelection: vscode.Selection;
+    var range: vscode.Range;
+    if (editor.selection.isEmpty) {
+      console.log(`no previous selection`);
+      newSelection = new vscode.Selection(newPosition, newPosition);
+      range = new vscode.Range(newPosition, newPosition);
+    } else {
+      console.log(`expanding selection`);
+      newSelection = editor.selection.isReversed ? new vscode.Selection(position, newPosition) : new vscode.Selection(newPosition, position);
+      range = editor.selection.isReversed ? editor.selection.with(newPosition) : editor.selection.with(undefined, newPosition);
+    }
     editor.selection = newSelection;
-    var range = new vscode.Range(newPosition, newPosition);
     editor.revealRange(range, vscode.TextEditorRevealType.Default);
   }
 };
@@ -271,13 +279,13 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(openCurrentWorklog);
 
-  let gotoPreviousHeader = vscode.commands.registerCommand('markdown-worklogs.gotoPreviousHeader', async () => {
-    gotoHeader(-1);
+  let gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
+    gotoHeader(te, -1);
   });
   context.subscriptions.push(gotoPreviousHeader);
 
-  let gotoNextHeader = vscode.commands.registerCommand('markdown-worklogs.gotoNextHeader', async () => {
-    gotoHeader(1);
+  let gotoNextHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextHeader', async (te) => {
+    gotoHeader(te, 1);
   });
   context.subscriptions.push(gotoNextHeader);
 
