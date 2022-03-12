@@ -96,8 +96,13 @@ let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
       range = new vscode.Range(newPosition, newPosition);
     } else {
       console.log(`expanding selection`);
-      newSelection = editor.selection.isReversed ? new vscode.Selection(position, newPosition) : new vscode.Selection(newPosition, position);
-      range = editor.selection.isReversed ? editor.selection.with(newPosition) : editor.selection.with(undefined, newPosition);
+      if (direction === -1) {
+        newSelection = new vscode.Selection(editor.selection.end, newPosition);
+      } else {
+        const headerText = editor.document.lineAt(headerLine).text;
+        newSelection = new vscode.Selection(editor.selection.start, newPosition.with(undefined, headerText.length));
+      }
+      range = new vscode.Range(position, newPosition);
     }
     editor.selection = newSelection;
     editor.revealRange(range, vscode.TextEditorRevealType.Default);
