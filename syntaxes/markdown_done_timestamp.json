@@ -1,0 +1,14 @@
+{
+  "fileTypes": [
+    "md",
+    "markdown"
+  ],
+  "injectionSelector": "meta.paragraph.markdown",
+  "patterns": [
+    {
+      "name": "string",
+      "match": "[\\s\\t]*CLOSED: \\[\\d{4}-\\d{1,2}-\\d{1,2} \\d{1,2}:\\d{1,2}\\]$"
+    }
+  ],
+  "scopeName": "markdown-worklogs.done_timestamp"
+}

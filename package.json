@@ -34,6 +34,13 @@
         ],
         "scopeName": "markdown-worklogs.done",
         "path": "./syntaxes/markdown_done.json"
+      },
+      {
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "scopeName": "markdown-worklogs.done_timestamp",
+        "path": "./syntaxes/markdown_done_timestamp.json"
       }
     ],
     "commands": [
