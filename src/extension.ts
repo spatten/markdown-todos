@@ -5,6 +5,44 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const TODO_TYPES = ["", "TODO", "DONE"];
+
+type HeaderInfo = {
+  leadingSpace: number;
+  level: number;
+  trailingSpace: number;
+  todoState: string;
+  todoIndex: number;
+};
+
+const emptyHeader: HeaderInfo = {
+  leadingSpace: 0,
+  level: 0,
+  trailingSpace: 0,
+  todoState: '',
+  todoIndex: 0
+};
+
+const getHeaderInfo = (lineText: string): HeaderInfo => {
+  // match (leading space)(#-signs)(space after #-signs)(first word)
+  const match = /^(\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
+  if (!match) { return emptyHeader; }
+  const [leading, octos, trailing, firstWord] = match.slice(1);
+
+  let currentIndex = TODO_TYPES.indexOf(firstWord);
+  // If firstWord is not 'TODO' or 'DONE', then it's '', the first entry in TODO_TYPES
+  if (currentIndex === -1) {
+    currentIndex = 0;
+  }
+  return {
+    leadingSpace: leading.length,
+    level: octos.length,
+    trailingSpace: trailing.length,
+    todoIndex: currentIndex,
+    todoState: TODO_TYPES[currentIndex],
+  };
+};
+
+// insert "  CLOSED: yyyy-mm-dd hh:m" after the DONEq header
 const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number, indent: number) => {
   const d = new Date();
   const padding = ' '.repeat(indent);
@@ -30,21 +68,12 @@ const findHeader = (direction: 1 | -1, ignoreCurrent: boolean = false): number =
   const lastLine = editor.document.lineCount;
   while (lineIndex >= 0 && lineIndex < lastLine) {
     let lineText = editor.document.lineAt(lineIndex).text;
-    if (headerLevelForLine(lineText) > 0) {
+    if (getHeaderInfo(lineText).level > 0) {
       return lineIndex;
     }
     lineIndex += direction;
   }
   return -1;
-};
-
-const headerLevelForLine = (lineText: string): number => {
-  // Return if it's not a header
-  const matches = lineText.match(/^\s*(#+)/);
-  if (!matches) {
-    return 0;
-  }
-  return matches[1].length;
 };
 
 let gotoHeader = (direction: 1 | -1) => {
@@ -71,17 +100,7 @@ const changeTodo = async (change: -1 | 1) => {
     return;
   }
   let lineText = editor.document.lineAt(lineIndex).text;
-
-  // match (leading space)(#-signs)(space after #-signs)(first word)
-  const match = /^(\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
-  if (!match) { return; }
-  const [leading, octos, trailing, firstWord] = match.slice(1);
-
-  // If firstWord is not 'TODO' or 'DONE', then it's '', the first entry in TODO_TYPES
-  let currentIndex = TODO_TYPES.indexOf(firstWord);
-  if (currentIndex === -1) {
-    currentIndex = 0;
-  }
+  const { leadingSpace, level, trailingSpace, todoState: currentState, todoIndex: currentIndex } = getHeaderInfo(lineText);
 
   // find the next TODO word, looping around in either direction
   let nextIndex = currentIndex + change;
@@ -99,13 +118,15 @@ const changeTodo = async (change: -1 | 1) => {
   }
 
   return await editor.edit((editBuilder) => {
-    const startPos = (leading + octos + trailing).length;
-    const endPos = startPos + firstWord.length + 1;
+    const startPos = leadingSpace + level + trailingSpace;
+    // const startPos = (leading + octos + trailing).length;
+    const endPos = startPos + currentState.length + 1;
+    // const endPos = startPos + firstWord.length + 1;
     const replaceRange = new vscode.Range(new vscode.Position(lineIndex, startPos), new vscode.Position(lineIndex, endPos));
 
     // if the firsst word of the header is not TODO or DONE, then we want to insert TODO or DONE
     // otherwise we want to replace the current TODO or DONE with nextWord
-    if (TODO_TYPES.indexOf(firstWord) < 1) {
+    if (currentIndex < 1) {
       editBuilder.insert(new vscode.Position(lineIndex, startPos), nextWord);
     } else {
       editBuilder.replace(replaceRange, nextWord);
@@ -113,7 +134,7 @@ const changeTodo = async (change: -1 | 1) => {
 
     // add or delete the completedAt text
     if (nextWord === 'DONE ') {
-      insertCompletedAt(editBuilder, lineIndex, leading.length + octos.length + 1);
+      insertCompletedAt(editBuilder, lineIndex, leadingSpace + level + 1);
     } else {
       deleteCompletedAt(editor, editBuilder, lineIndex);
     }
@@ -123,7 +144,6 @@ const changeTodo = async (change: -1 | 1) => {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "markdown-worklogs" is now active!');
