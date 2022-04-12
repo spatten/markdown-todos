@@ -57,7 +57,7 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
-const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number }): number => {
+const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine, minLevel, exactLevel }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number, minLevel?: number, exactLevel?: number }): number => {
   let lineIndex;
   if (startLine === undefined) {
     lineIndex = editor.selection.active.line;
@@ -69,8 +69,13 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   }
   const lastLine = editor.document.lineCount;
   while (lineIndex >= 0 && lineIndex < lastLine) {
-    let lineText = editor.document.lineAt(lineIndex).text;
-    if (getHeaderInfo(lineText).level > 0) {
+    const lineText = editor.document.lineAt(lineIndex).text;
+    const lineLevel = getHeaderInfo(lineText).level;
+    if (minLevel) {
+      if (lineLevel >= minLevel) { return lineIndex; };
+    } else if (exactLevel) {
+      if (lineLevel === exactLevel) { return lineIndex; };
+    } else if (lineLevel > 0) {
       return lineIndex;
     }
     lineIndex += direction;
@@ -78,8 +83,9 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   return -1;
 };
 
-let gotoHeader = (editor: vscode.TextEditor, direction: 1 | -1) => {
-  const headerLine = findHeader(editor, { direction, ignoreCurrent: true });
+let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
+  const { direction, minLevel, exactLevel } = params;
+  const headerLine = findHeader(editor, { direction, ignoreCurrent: true, minLevel, exactLevel });
 
   if (headerLine >= 0) {
     const position = editor.selection.active;
@@ -277,14 +283,24 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(openCurrentWorklog);
 
   let gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
-    gotoHeader(te, -1);
+    gotoHeader(te, { direction: -1 });
   });
   context.subscriptions.push(gotoPreviousHeader);
 
   let gotoNextHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextHeader', async (te) => {
-    gotoHeader(te, 1);
+    gotoHeader(te, { direction: 1 });
   });
   context.subscriptions.push(gotoNextHeader);
+
+  let gotoPreviousTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousTopLevelHeader', async (te) => {
+    gotoHeader(te, { direction: -1, exactLevel: 1 });
+  });
+  context.subscriptions.push(gotoPreviousTopLevelHeader);
+
+  let gotoNextTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextTopLevelHeader', async (te) => {
+    gotoHeader(te, { direction: 1, exactLevel: 1 });
+  });
+  context.subscriptions.push(gotoNextTopLevelHeader);
 
   let sortDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortDoneToBottom', async (te) => {
     moveAllDoneToBottom(te);

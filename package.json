@@ -17,6 +17,8 @@
     "onCommand:markdown-worklogs.openCurrentWorklog",
     "onCommand:markdown-worklogs.gotoPreviousHeader",
     "onCommand:markdown-worklogs.gotoNextHeader",
+    "onCommand:markdown-worklogs.gotoPreviousTopLevelHeader",
+    "onCommand:markdown-worklogs.gotoNextTopLevelHeader",
     "onCommand:markdown-worklogs.sortDoneToBottom",
     "onCommand:markdown-worklogs.findInWorklogs"
   ],
@@ -65,6 +67,14 @@
       {
         "command": "markdown-worklogs.gotoNextHeader",
         "title": "Markdown Work Logs: go to next header"
+      },
+      {
+        "command": "markdown-worklogs.gotoPreviousTopLevelHeader",
+        "title": "Markdown Work Logs: go to previous top level header"
+      },
+      {
+        "command": "markdown-worklogs.gotoNextTopLevelHeader",
+        "title": "Markdown Work Logs: go to next top level header"
       },
       {
         "command": "markdown-worklogs.sortDoneToBottom",
