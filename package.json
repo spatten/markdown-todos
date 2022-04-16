@@ -14,6 +14,7 @@
   "activationEvents": [
     "onCommand:markdown-worklogs.increaseTodo",
     "onCommand:markdown-worklogs.decreaseTodo",
+    "onCommand:markdown-worklogs.createNewWorklog",
     "onCommand:markdown-worklogs.openCurrentWorklog",
     "onCommand:markdown-worklogs.gotoPreviousHeader",
     "onCommand:markdown-worklogs.gotoNextHeader",
@@ -85,6 +86,10 @@
       {
         "command": "markdown-worklogs.decreaseTodo",
         "title": "Markdown Work Logs: decrease TODO level"
+      },
+      {
+        "command": "markdown-worklogs.createNewWorklog",
+        "title": "Markdown Work Logs: create a new worklog"
       },
       {
         "command": "markdown-worklogs.openCurrentWorklog",

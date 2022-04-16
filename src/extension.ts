@@ -280,6 +280,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (!worklogDir) {
       throw new Error("Please set your worklog directory in the markdown-worklogs extension settings");
     }
+
     const entries = await fs.promises.readdir(worklogDir);
     const workLogs = entries.filter(entry => entry.match(/^\d\d\d\d-\d\d-\d\d\.md$/));
     const currentLog = workLogs.sort().reverse()[0];
@@ -293,6 +294,39 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
   context.subscriptions.push(openCurrentWorklog);
+
+  let createNewWorklog = vscode.commands.registerCommand('markdown-worklogs.createNewWorklog', async () => {
+    const worklogDir = getConfig('worklogDirectory');
+    if (!worklogDir) {
+      throw new Error("Please set your worklog directory in the markdown-worklogs extension settings");
+    }
+
+    const d = new Date();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const newLog = path.join(worklogDir, `${d.getFullYear()}-${month}-${day}.md`);
+
+    // Make sure the file exists. utimesSync is the equivalent of touch
+    const time = new Date();
+    try {
+      fs.utimesSync(newLog, time, time);
+    } catch (err) {
+      fs.closeSync(fs.openSync(newLog, 'w'));
+    }
+
+    // Open the file in VS Code
+    let uri = vscode.Uri.file(newLog);
+    await vscode.commands.executeCommand('vscode.open', uri);
+
+    // Fold and pin it
+    if (getConfig('foldCurrentWorklog')) {
+      vscode.commands.executeCommand('editor.foldAll');
+    }
+    if (getConfig('pinCurrentWorklog')) {
+      vscode.commands.executeCommand('workbench.action.pinEditor');
+    }
+  });
+  context.subscriptions.push(createNewWorklog);
 
   let gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
     gotoHeader(te, { direction: -1 });
