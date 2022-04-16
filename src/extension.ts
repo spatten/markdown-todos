@@ -149,7 +149,9 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
 
   // add or delete the completedAt text
   if (nextWord === 'DONE ') {
-    insertCompletedAt(editBuilder, lineIndex, leadingSpace + level + 1);
+    if (getConfig('insertCompletionTimestamp')) {
+      insertCompletedAt(editBuilder, lineIndex, leadingSpace + level + 1);
+    }
   } else {
     deleteCompletedAt(editor, editBuilder, lineIndex);
   }
@@ -283,8 +285,12 @@ export function activate(context: vscode.ExtensionContext) {
     const currentLog = workLogs.sort().reverse()[0];
     let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
     await vscode.commands.executeCommand('vscode.open', uri);
-    vscode.commands.executeCommand('editor.foldAll');
-    vscode.commands.executeCommand('workbench.action.pinEditor');
+    if (getConfig('foldCurrentWorklog')) {
+      vscode.commands.executeCommand('editor.foldAll');
+    }
+    if (getConfig('pinCurrentWorklog')) {
+      vscode.commands.executeCommand('workbench.action.pinEditor');
+    }
   });
   context.subscriptions.push(openCurrentWorklog);
 

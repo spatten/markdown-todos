@@ -32,7 +32,25 @@
           "type": "string",
           "scope": "resource",
           "default": "",
-          "description": "Path to where your worklogs are stored. It's a good idea to put these somewhere that gets backed up, like Dropbox or OneDrive"
+          "description": "Path to directory where your worklogs are stored. It's a good idea to put these somewhere that gets backed up, like Dropbox or OneDrive"
+        },
+        "markdown-worklogs.insertCompletionTimestamp": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "Insert a timestamp when a task is marked as done"
+        },
+        "markdown-worklogs.pinCurrentWorklog": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "Pin the current worklog after opening it"
+        },
+        "markdown-worklogs.foldCurrentWorklog": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "Fold the current worklog after opening it"
         }
       }
     },
