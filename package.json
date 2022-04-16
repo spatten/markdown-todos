@@ -24,6 +24,18 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Markdown Worklogs",
+      "type": "object",
+      "properties": {
+        "markdown-worklogs.worklogDirectory": {
+          "type": "string",
+          "scope": "resource",
+          "default": "",
+          "description": "Path to where your worklogs are stored. It's a good idea to put these somewhere that gets backed up, like Dropbox or OneDrive"
+        }
+      }
+    },
     "grammars": [
       {
         "injectTo": [

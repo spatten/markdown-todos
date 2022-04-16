@@ -253,12 +253,15 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
   }
 };
 
+const getConfig = (param: string): string | undefined => vscode.workspace.getConfiguration('markdown-worklogs').get(param);
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "markdown-worklogs" is now active!');
+
 
   let increaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.increaseTodo', async (te, edit) => {
     await changeTodo(te, edit, 1);
@@ -271,7 +274,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(decreaseTodo);
 
   let openCurrentWorklog = vscode.commands.registerCommand('markdown-worklogs.openCurrentWorklog', async () => {
-    const worklogDir = "/Users/scott/Dropbox/work-logs";
+    const worklogDir = getConfig('worklogDirectory');
+    if (!worklogDir) {
+      throw new Error("Please set your worklog directory in the markdown-worklogs extension settings");
+    }
     const entries = await fs.promises.readdir(worklogDir);
     const workLogs = entries.filter(entry => entry.match(/^\d\d\d\d-\d\d-\d\d\.md$/));
     const currentLog = workLogs.sort().reverse()[0];
@@ -326,7 +332,7 @@ export function activate(context: vscode.ExtensionContext) {
       triggerSearch: true,
       matchWholeWord: true,
       isCaseSensitive: true,
-      filesToInclude: '~/Dropbox/work-logs',
+      filesToInclude: getConfig('worklogDirectory'),
     });
   });
   context.subscriptions.push(findInWorklogs);
