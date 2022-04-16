@@ -333,7 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // 'workbench.action.findInFiles' or 'search.action.openEditor'. They both take the same params
-    vscode.commands.executeCommand('workbench.action.findInFiles', {
+    vscode.commands.executeCommand('search.action.openEditor', {
       query: searchText,
       triggerSearch: true,
       matchWholeWord: true,
