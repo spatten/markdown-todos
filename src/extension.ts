@@ -3,7 +3,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as MarkdownIt from "markdown-it";
+import Token = require('markdown-it/lib/token');
 
+const markdownParser = MarkdownIt();
 const TODO_TYPES = ["", "TODO", "DONE"];
 
 type HeaderInfo = {
@@ -57,30 +60,83 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
   }
 };
 
+// parsed contains an array of tokens. A header token will look like this:
+// Token {
+//   type: 'heading_open',
+//   tag: 'h1',
+//   attrs: null,
+//   map: [ 0, 1 ],
+//   nesting: 1,
+//   level: 0,
+//   children: null,
+//   content: '',
+//   markup: '#',
+//   info: '',
+//   meta: null,
+//   block: true,
+//   hidden: false
+// },
+//
+// We're looking for headers that have a level of 0. The first entry in the `map` attribute is the line index of the header.
+const headerFilter = (block: Token, lineIndex: number, params: { direction: number, ignoreCurrent: boolean, minLevel?: number, exactLevel?: number }): boolean => {
+  const { direction, ignoreCurrent, minLevel, exactLevel } = params;
+  // must be a top-level header
+  if (block.level !== 0 && block.type !== 'heading_open') {
+    return false;
+  }
+
+  // we need a line number
+  if (!block.map?.[0]) {
+    return false;
+  }
+
+  // If we're searching forward, then the header must be after the current line, and vice versa
+  if (direction === 1) {
+    if (block.map?.[0] < lineIndex) {
+      return false;
+    };
+  } else {
+    if (block.map?.[0] > lineIndex) {
+      return false;
+    };
+  }
+
+  // if we're ignoring the current line, then return if it's the same line
+  if (ignoreCurrent && block.map?.[0] === lineIndex) {
+    return false;
+  }
+
+  // The tag must be of the form "h<digit>"
+  if (!block.tag.match(/^h\d$/)) {
+    return false;
+  }
+
+  const headerLevel = parseInt(block.tag.replace(/^h/, ''));
+  if (minLevel && headerLevel < minLevel) {
+    return false;
+  }
+
+  if (exactLevel && headerLevel !== exactLevel) {
+    return false;
+  }
+
+  return true;
+};
+
 const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine, minLevel, exactLevel }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number, minLevel?: number, exactLevel?: number }): number => {
-  let lineIndex;
+  let lineIndex: number;
   if (startLine === undefined) {
     lineIndex = editor.selection.active.line;
   } else {
     lineIndex = startLine;
   }
-  if (ignoreCurrent) {
-    lineIndex += direction;
+  const fullText = editor.document.getText();
+  let parsed = markdownParser.parse(fullText, {});
+  if (direction === -1) {
+    parsed = parsed.reverse();
   }
-  const lastLine = editor.document.lineCount;
-  while (lineIndex >= 0 && lineIndex < lastLine) {
-    const lineText = editor.document.lineAt(lineIndex).text;
-    const lineLevel = getHeaderInfo(lineText).level;
-    if (minLevel) {
-      if (lineLevel >= minLevel) { return lineIndex; };
-    } else if (exactLevel) {
-      if (lineLevel === exactLevel) { return lineIndex; };
-    } else if (lineLevel > 0) {
-      return lineIndex;
-    }
-    lineIndex += direction;
-  }
-  return -1;
+  const header = parsed.find(block => headerFilter(block, lineIndex, { direction, ignoreCurrent, minLevel, exactLevel }));
+  return header?.map?.[0] || -1;
 };
 
 let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
