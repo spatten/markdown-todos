@@ -78,40 +78,53 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
 // },
 //
 // We're looking for headers that have a level of 0. The first entry in the `map` attribute is the line index of the header.
-const headerFilter = (block: Token, lineIndex: number, params: { direction: number, ignoreCurrent: boolean, minLevel?: number, exactLevel?: number }): boolean => {
+type FilterParams = {
+  direction: number;
+  ignoreCurrent: boolean;
+  minLevel?: number;
+  exactLevel?: number;
+  minLine?: number;
+  maxLine?: number;
+  currentLine?: number;
+};
+
+const headerFilter = (block: Token, params: FilterParams): boolean => {
   const { direction, ignoreCurrent, minLevel, exactLevel } = params;
   // must be a top-level header
-  if (block.level !== 0 && block.type !== 'heading_open') {
+  // top-level means "not nested inside of another thing". An h2 header can be a top-level header.
+  // For example, a header inside of a blockquote or a list is not top-level.
+  if (block.level !== 0 || block.type !== 'heading_open') {
     return false;
   }
+  console.log(`looking at: ${JSON.stringify(block)}`);
 
   // we need a line number
-  if (!block.map?.[0]) {
+  if (block.map?.[0] === undefined) {
+    return false;
+  }
+  const lineNumber = block.map[0];
+  console.log(`lineNumber = ${lineNumber}`);
+
+  if (params.minLine !== undefined && lineNumber < params.minLine) {
     return false;
   }
 
-  // If we're searching forward, then the header must be after the current line, and vice versa
-  if (direction === 1) {
-    if (block.map?.[0] < lineIndex) {
-      return false;
-    };
-  } else {
-    if (block.map?.[0] > lineIndex) {
-      return false;
-    };
+  if (params.maxLine !== undefined && lineNumber > params.maxLine) {
+    return false;
   }
 
   // if we're ignoring the current line, then return if it's the same line
-  if (ignoreCurrent && block.map?.[0] === lineIndex) {
+  if (ignoreCurrent && params.currentLine !== undefined && lineNumber === params.currentLine) {
     return false;
   }
+  console.log(`made it past the line number filters`);
 
   // The tag must be of the form "h<digit>"
   if (!block.tag.match(/^h\d$/)) {
     return false;
   }
 
-  const headerLevel = parseInt(block.tag.replace(/^h/, ''));
+  const headerLevel = getHeaderLevel(block);
   if (minLevel && headerLevel < minLevel) {
     return false;
   }
@@ -119,31 +132,49 @@ const headerFilter = (block: Token, lineIndex: number, params: { direction: numb
   if (exactLevel && headerLevel !== exactLevel) {
     return false;
   }
+  console.log(`all good! returning true!`);
 
   return true;
 };
 
-const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine, minLevel, exactLevel }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number, minLevel?: number, exactLevel?: number }): number => {
-  let lineIndex: number;
-  if (startLine === undefined) {
-    lineIndex = editor.selection.active.line;
-  } else {
-    lineIndex = startLine;
-  }
+const getBlocks = (editor: vscode.TextEditor): Token[] => {
   const fullText = editor.document.getText();
-  let parsed = markdownParser.parse(fullText, {});
+  return markdownParser.parse(fullText, {});
+};
+
+const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine, minLevel, exactLevel }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number, minLevel?: number, exactLevel?: number }): number => {
+  let currentLine: number;
+  if (startLine === undefined) {
+    currentLine = editor.selection.active.line;
+  } else {
+    currentLine = startLine;
+  }
+  console.log(`findHeader, currentLine = ${currentLine}`);
+  let parsed = getBlocks(editor);
+  const filterParams: FilterParams = { direction, ignoreCurrent, minLevel, exactLevel, currentLine };
   if (direction === -1) {
     parsed = parsed.reverse();
+    filterParams.maxLine = currentLine;
+  } else {
+    filterParams.minLine = currentLine;
   }
-  const header = parsed.find(block => headerFilter(block, lineIndex, { direction, ignoreCurrent, minLevel, exactLevel }));
-  return header?.map?.[0] || -1;
+  console.log(`headers: ${JSON.stringify(parsed.filter(b => b.type === 'heading_open'))}`);
+  const header = parsed.find(block => headerFilter(block, filterParams));
+  console.log(`found header: ${JSON.stringify(header)}\nfilterParams = ${JSON.stringify(filterParams)}`);
+  if (header?.map) {
+    console.log(`returning ${header.map[0]}`);
+    return header.map[0];
+  }
+  return -1;
 };
 
 let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
   const { direction, minLevel, exactLevel } = params;
+  console.log(`gotoHeader, direction = ${direction}, minLevel = ${minLevel}, exactLevel = ${exactLevel}`);
   const headerLine = findHeader(editor, { direction, ignoreCurrent: true, minLevel, exactLevel });
 
   if (headerLine >= 0) {
+    console.log(`found header at line ${headerLine}`);
     const position = editor.selection.active;
     var newPosition = new vscode.Position(headerLine, 0);
     var newSelection: vscode.Selection;
@@ -232,77 +263,77 @@ const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, 
   return linesMoved;
 };
 
-// Used by moveAllDoneToBottom
-// find the minimim header level in the currently selected text
-const minHeaderLevelInSelection = (editor: vscode.TextEditor, firstLine: number, lastLine: number): number => {
-  let lineIndex = lastLine;
-  let minLevel: number = 9999;
-
-  let lineText = editor.document.lineAt(lineIndex).text;
-  const { level } = getHeaderInfo(lineText);
-  if (level > 0) {
-    minLevel = level;
+const getHeaderLevel = (block: Token): number => {
+  if (!block.tag.match(/^h\d$/)) {
+    throw new Error("attempted to get header level on non-header block ${JSON.stringify(block)}");
   }
-
-  while (lineIndex >= firstLine) {
-    lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: true, startLine: lineIndex });
-    console.log(`headerLine = ${lineIndex}`);
-    if (lineIndex >= firstLine) {
-      let lineText = editor.document.lineAt(lineIndex).text;
-      const { level } = getHeaderInfo(lineText);
-      if (level > 0 && level < minLevel) {
-        minLevel = level;
-      }
-    }
-  }
-  if (minLevel === 9999) {
-    minLevel = 1;
-  }
-  return minLevel;
+  return parseInt(block.tag.replace(/^h/, ''));
 };
 
 // move all top-level DONE sections to the bottom of the file, maintaining their order
 const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
   // if there is a selection, then only search in the selection and sort the top-level
   // of headers found in the selection.
-  // If there is no selection, then search the whole file and sort level-1 headers
-  var firstLine = 0;
-  var lastLine = editor.document.lineCount - 1;
-  var topHeaderLevel = 1;
+  // If there is no selection, then search the whole file and sort h1 headers
+  let minLine = 0;
+  let maxLine = editor.document.lineCount - 1;
+  let haveSelection = false;
   if (editor.selection.start.line !== editor.selection.end.line) {
     console.log(`we have a selection`);
-    firstLine = editor.selection.start.line;
-    lastLine = editor.selection.end.line;
-    topHeaderLevel = minHeaderLevelInSelection(editor, firstLine, lastLine);
-    console.log(`firstLine: ${firstLine}, lastLine: ${lastLine}, min header level: ${topHeaderLevel}`);
+    minLine = editor.selection.start.line;
+    maxLine = editor.selection.end.line;
+    haveSelection = true;
   }
+
+  let parsed = getBlocks(editor);
+
+  const filterParams: FilterParams = { direction: 1, ignoreCurrent: false, minLine, maxLine };
+  let headers = parsed.filter(block => headerFilter(block, filterParams));
+  let topLevelHeader = 1;
+  if (haveSelection) {
+    topLevelHeader = headers.reduce(
+      (minLevel: number, currentHeader: Token) => {
+        const level = getHeaderLevel(currentHeader);
+        if (level < minLevel) {
+          return level;
+        }
+        return minLevel;
+      },
+      1000
+    );
+  }
+  console.log(`firstLine: ${minLine}, lastLine: ${maxLine}, min header level: ${topLevelHeader}`);
+  headers = headers.filter(header => getHeaderLevel(header) === topLevelHeader);
 
   // get a list of the line ranges for all top-level DONE entries
   // Also, find the last line that is not part of a DONE entry
-  let currentLastLineInDone = lastLine;
+  let currentLastLineInDone = maxLine;
   let lastNonDONELine = -1;
   let doneEntries: [number, number][] = [];
-  for (let lineIndex = lastLine; lineIndex >= firstLine; lineIndex--) {
-    const lineText = editor.document.lineAt(lineIndex).text;
-    const headerInfo = getHeaderInfo(lineText);
-    if (headerInfo.level !== topHeaderLevel) { // not a top-level header, so just set last line if necessary
-      if (currentLastLineInDone === -1) {
-        currentLastLineInDone = lineIndex;
-      }
-    } else if (headerInfo.todoState === 'DONE') { // a DONE header
-      // single line DONE case
-      if (currentLastLineInDone === -1) {
-        currentLastLineInDone = lineIndex;
-      }
-      doneEntries.push([lineIndex, currentLastLineInDone]);
-      currentLastLineInDone = -1;
-    } else { // a non-DONE header
-      if (lastNonDONELine === -1) {
-        lastNonDONELine = currentLastLineInDone === -1 ? lineIndex : currentLastLineInDone;
-      }
-      currentLastLineInDone = -1;
+  headers.forEach((header, n) => {
+    const startLine = header.map?.[0];
+    if (!startLine) {
+      return;
     }
-  }
+    let endLine;
+    if (n < headers.length - 1) {
+      const nextMap = headers[n + 1]?.map;
+      if (!nextMap) {
+        throw new Error("no map found when looking at next header");
+      }
+      endLine = nextMap[0] - 1;
+    } else {
+      endLine = maxLine;
+    }
+
+    const lineText = editor.document.lineAt(startLine).text;
+    const headerInfo = getHeaderInfo(lineText);
+    if (headerInfo.todoState === 'DONE') {
+      doneEntries.push([startLine, endLine]);
+    } else {
+      lastNonDONELine = endLine;
+    }
+  });
 
   // now, start moving the DONE entries down below lastNonDONELine
   for (const doneEntry of doneEntries) {
