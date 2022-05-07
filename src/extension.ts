@@ -95,14 +95,12 @@ const headerFilter = (block: Token, params: FilterParams): boolean => {
   if (block.level !== 0 || block.type !== 'heading_open') {
     return false;
   }
-  console.log(`looking at: ${JSON.stringify(block)}`);
 
   // we need a line number
   if (block.map?.[0] === undefined) {
     return false;
   }
   const lineNumber = block.map[0];
-  console.log(`lineNumber = ${lineNumber}`);
 
   if (minLine !== undefined && lineNumber < minLine) {
     return false;
@@ -116,7 +114,6 @@ const headerFilter = (block: Token, params: FilterParams): boolean => {
   if (ignoreCurrent && currentLine !== undefined && lineNumber === currentLine) {
     return false;
   }
-  console.log(`made it past the line number filters`);
 
   // The tag must be of the form "h<digit>"
   if (!block.tag.match(/^h\d$/)) {
@@ -131,7 +128,6 @@ const headerFilter = (block: Token, params: FilterParams): boolean => {
   if (exactLevel && headerLevel !== exactLevel) {
     return false;
   }
-  console.log(`all good! returning true!`);
 
   return true;
 };
@@ -148,7 +144,6 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   } else {
     currentLine = startLine;
   }
-  console.log(`findHeader, currentLine = ${currentLine}`);
   let parsed = getBlocks(editor);
   const filterParams: FilterParams = { ignoreCurrent, minLevel, exactLevel, currentLine };
   if (direction === -1) {
@@ -157,11 +152,8 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   } else {
     filterParams.minLine = currentLine;
   }
-  console.log(`headers: ${JSON.stringify(parsed.filter(b => b.type === 'heading_open'))}`);
   const header = parsed.find(block => headerFilter(block, filterParams));
-  console.log(`found header: ${JSON.stringify(header)}\nfilterParams = ${JSON.stringify(filterParams)}`);
   if (header?.map) {
-    console.log(`returning ${header.map[0]}`);
     return header.map[0];
   }
   return -1;
@@ -169,21 +161,17 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
 
 let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
   const { direction, minLevel, exactLevel } = params;
-  console.log(`gotoHeader, direction = ${direction}, minLevel = ${minLevel}, exactLevel = ${exactLevel}`);
   const headerLine = findHeader(editor, { direction, ignoreCurrent: true, minLevel, exactLevel });
 
   if (headerLine >= 0) {
-    console.log(`found header at line ${headerLine}`);
     const position = editor.selection.active;
     var newPosition = new vscode.Position(headerLine, 0);
     var newSelection: vscode.Selection;
     var range: vscode.Range;
     if (editor.selection.isEmpty) {
-      console.log(`no previous selection`);
       newSelection = new vscode.Selection(newPosition, newPosition);
       range = new vscode.Range(newPosition, newPosition);
     } else {
-      console.log(`expanding selection`);
       if (direction === -1) {
         newSelection = new vscode.Selection(editor.selection.end, newPosition);
       } else {
@@ -278,7 +266,6 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
   let maxLine = editor.document.lineCount - 1;
   let haveSelection = false;
   if (editor.selection.start.line !== editor.selection.end.line) {
-    console.log(`we have a selection`);
     minLine = editor.selection.start.line;
     maxLine = editor.selection.end.line;
     haveSelection = true;
@@ -301,7 +288,6 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
       1000
     );
   }
-  console.log(`firstLine: ${minLine}, lastLine: ${maxLine}, min header level: ${topLevelHeader}`);
   headers = headers.filter(header => getHeaderLevel(header) === topLevelHeader);
 
   // get a list of the line ranges for all top-level DONE entries
