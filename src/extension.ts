@@ -88,7 +88,7 @@ type FilterParams = {
 };
 
 const headerFilter = (block: Token, params: FilterParams): boolean => {
-  const { ignoreCurrent, minLevel, exactLevel } = params;
+  const { ignoreCurrent, minLevel, exactLevel, currentLine, minLine, maxLine } = params;
   // must be a top-level header
   // top-level means "not nested inside of another thing". An h2 header can be a top-level header.
   // For example, a header inside of a blockquote or a list is not top-level.
@@ -104,16 +104,16 @@ const headerFilter = (block: Token, params: FilterParams): boolean => {
   const lineNumber = block.map[0];
   console.log(`lineNumber = ${lineNumber}`);
 
-  if (params.minLine !== undefined && lineNumber < params.minLine) {
+  if (minLine !== undefined && lineNumber < minLine) {
     return false;
   }
 
-  if (params.maxLine !== undefined && lineNumber > params.maxLine) {
+  if (maxLine !== undefined && lineNumber > maxLine) {
     return false;
   }
 
   // if we're ignoring the current line, then return if it's the same line
-  if (ignoreCurrent && params.currentLine !== undefined && lineNumber === params.currentLine) {
+  if (ignoreCurrent && currentLine !== undefined && lineNumber === currentLine) {
     return false;
   }
   console.log(`made it past the line number filters`);
