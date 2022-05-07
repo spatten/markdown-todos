@@ -321,10 +321,11 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
   });
   doneEntries = doneEntries.reverse();
 
-  // now, start moving the DONE entries down below lastNonDONELine
+  console.log(`lastNonDONELine: ${lastNonDONELine}\n${JSON.stringify(doneEntries)}`);
+  // now, start moving the DONE entries down below lastNonDONELine, maintaining their order
   for (const doneEntry of doneEntries) {
     const linesMoved = await moveEntryToBottom(editor, doneEntry, lastNonDONELine);
-    lastNonDONELine -= linesMoved;
+    lastNonDONELine -= (linesMoved + 1);
   }
 };
 
