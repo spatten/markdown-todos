@@ -79,7 +79,6 @@ const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEd
 //
 // We're looking for headers that have a level of 0. The first entry in the `map` attribute is the line index of the header.
 type FilterParams = {
-  direction: number;
   ignoreCurrent: boolean;
   minLevel?: number;
   exactLevel?: number;
@@ -89,7 +88,7 @@ type FilterParams = {
 };
 
 const headerFilter = (block: Token, params: FilterParams): boolean => {
-  const { direction, ignoreCurrent, minLevel, exactLevel } = params;
+  const { ignoreCurrent, minLevel, exactLevel } = params;
   // must be a top-level header
   // top-level means "not nested inside of another thing". An h2 header can be a top-level header.
   // For example, a header inside of a blockquote or a list is not top-level.
@@ -151,7 +150,7 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   }
   console.log(`findHeader, currentLine = ${currentLine}`);
   let parsed = getBlocks(editor);
-  const filterParams: FilterParams = { direction, ignoreCurrent, minLevel, exactLevel, currentLine };
+  const filterParams: FilterParams = { ignoreCurrent, minLevel, exactLevel, currentLine };
   if (direction === -1) {
     parsed = parsed.reverse();
     filterParams.maxLine = currentLine;
@@ -287,7 +286,7 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
 
   let parsed = getBlocks(editor);
 
-  const filterParams: FilterParams = { direction: 1, ignoreCurrent: false, minLine, maxLine };
+  const filterParams: FilterParams = { ignoreCurrent: false, minLine, maxLine };
   let headers = parsed.filter(block => headerFilter(block, filterParams));
   let topLevelHeader = 1;
   if (haveSelection) {
