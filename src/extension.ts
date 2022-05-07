@@ -319,6 +319,7 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
       lastNonDONELine = endLine;
     }
   });
+  doneEntries = doneEntries.reverse();
 
   // now, start moving the DONE entries down below lastNonDONELine
   for (const doneEntry of doneEntries) {
