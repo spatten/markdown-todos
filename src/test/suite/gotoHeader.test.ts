@@ -13,7 +13,7 @@ describe('goto header functions', async function () {
       helpers.gotoLine(editor, 23);
       await vscode.commands.executeCommand("markdown-worklogs.gotoPreviousHeader");
       const position = editor.selection.active;
-      assert.strictEqual(21, position.line);
+      assert.strictEqual(20, position.line);
     });
 
     it('should go to the previous header even if you are on a header', async () => {
