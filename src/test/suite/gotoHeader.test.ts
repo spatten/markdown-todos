@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as helpers from '../helpers';
 
-describe('goto header functions', () => {
+describe('goto header functions', async function () {
   let editor: vscode.TextEditor;
   before(async function () {
     editor = await helpers.openExample('simple.md', { lineNumber: 23 });
@@ -41,11 +41,6 @@ describe('goto header functions', () => {
   });
 
   describe('gotoNextHeader', async () => {
-    let editor: vscode.TextEditor;
-    before(async function () {
-      editor = await helpers.openExample('simple.md');
-    });
-
     it('should go to the next header', async () => {
       helpers.gotoLine(editor, 22);
       await vscode.commands.executeCommand("markdown-worklogs.gotoNextHeader");

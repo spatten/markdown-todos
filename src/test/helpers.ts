@@ -9,8 +9,12 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-export async function openExample(exampleName: string, params?: { lineNumber?: number }): Promise<vscode.TextEditor> {
-  const uri = vscode.Uri.file(path.join(__dirname + fixtureLocation + exampleName));
+export function fixturePath(fixtureName: string): string {
+  return __dirname + fixtureLocation + fixtureName;
+}
+
+export async function openExample(fixtureName: string, params?: { lineNumber?: number }): Promise<vscode.TextEditor> {
+  const uri = vscode.Uri.file(fixturePath(fixtureName));
   const document = await vscode.workspace.openTextDocument(uri);
   const editor = await vscode.window.showTextDocument(document);
   await sleep(500);
