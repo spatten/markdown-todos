@@ -14,6 +14,7 @@ describe('sortDoneToBottom', async function () {
 
   it('should sort the DONEs to the bottom', async function () {
     await vscode.commands.executeCommand('markdown-worklogs.sortDoneToBottom');
+    await helpers.sleep(100);
     const fullText = editor.document.getText();
     const expectedSortedText = await fs.promises.readFile(helpers.fixturePath('sortable-sorted.md'));
     console.log(`after sorting:\n${fullText}`);
