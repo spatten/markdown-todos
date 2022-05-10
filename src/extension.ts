@@ -25,7 +25,7 @@ const emptyHeader: HeaderInfo = {
   todoIndex: 0
 };
 
-const getHeaderInfo = (lineText: string): HeaderInfo => {
+export const getHeaderInfo = (lineText: string): HeaderInfo => {
   // match (leading space)(#-signs)(space after #-signs)(first word)
   const match = /^(\s*)([#]+)(\s*)([^ ]*)/.exec(lineText);
   if (!match) { return emptyHeader; }
