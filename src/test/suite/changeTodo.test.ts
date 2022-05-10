@@ -57,15 +57,15 @@ describe('change TODO functions', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 0);
 
-      // Change from TODO to DONE
+      // Change from TODO to ''
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, '');
 
-      // Change from DONE to ''
+      // Change from '' to DONE
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, 'DONE');
 
-      // Change from '' to TODO
+      // Change from DONE to TODO
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, 'TODO');
     });
@@ -74,15 +74,15 @@ describe('change TODO functions', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 2);
 
-      // Change from TODO to DONE
+      // Change from TODO to ''
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, '');
 
-      // Change from DONE to ''
+      // Change from '' to DONE
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, 'DONE');
 
-      // Change from '' to TODO
+      // Change from DONE to TODO
       await vscode.commands.executeCommand("markdown-worklogs.decreaseTodo");
       assertTodoStateAtLine(editor, 0, 'TODO');
     });
