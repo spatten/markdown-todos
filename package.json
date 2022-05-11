@@ -145,7 +145,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
-    "lint:precommit": "eslint src --ext ts --rule 'mocha/no-exclusive-tests: 2' --rule 'no-undef: 2' --rule 'no-console: 2' --plugin mocha --env node,mocha",
+    "lint:strict": "eslint src --ext ts --rule 'mocha/no-exclusive-tests: 2' --rule 'no-undef: 2' --rule 'no-console: 2' --plugin mocha --env node,mocha",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
     "package": "vsce package"
