@@ -21,3 +21,5 @@ jobs:
       if: runner.os == 'Linux'
     - run: npm test
       if: runner.os != 'Linux'
+    - run: npm run lint:strict
+      if: runner.os == 'Linux'
