@@ -1,4 +1,3 @@
-import * as path from "path";
 import * as vscode from 'vscode';
 
 const fixtureLocation = "/../../src/test/fixtures/";

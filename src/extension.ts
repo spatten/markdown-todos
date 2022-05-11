@@ -236,7 +236,7 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
 // We need to make our own edit builder here as we need to actually run each moveEntryToBottomedit before the next one is run
 const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, number], lastNonDONELine: number): Promise<number> => {
   let linesMoved = 0;
-  const res = await editor.edit((editBuilder) => {
+  await editor.edit((editBuilder) => {
     const replaceRange = new vscode.Range(new vscode.Position(doneEntry[0], 0), new vscode.Position(doneEntry[1] + 1, 0));
     const doneText = editor.document.getText(replaceRange);
     if (doneEntry[0] >= lastNonDONELine) {
