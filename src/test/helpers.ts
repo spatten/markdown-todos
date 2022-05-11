@@ -29,3 +29,12 @@ export function gotoLine(editor: vscode.TextEditor, line: number) {
   const newSelection = new vscode.Selection(newPosition, newPosition);
   editor.selection = newSelection;
 }
+
+export async function setConfig(key: string, settings: any) {
+  const config = vscode.workspace.getConfiguration();
+  await config.update(
+    key,
+    settings,
+    vscode.ConfigurationTarget.Global
+  );
+}
