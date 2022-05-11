@@ -45,7 +45,7 @@ export const getHeaderInfo = (lineText: string): HeaderInfo => {
   };
 };
 
-// insert "  CLOSED: yyyy-mm-dd hh:m" after the DONEq header
+// insert "  CLOSED: yyyy-mm-dd hh:m" after the DONE header
 const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: number, indent: number) => {
   const d = new Date();
   const padding = ' '.repeat(indent);
