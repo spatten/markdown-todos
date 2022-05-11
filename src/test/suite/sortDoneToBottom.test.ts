@@ -32,13 +32,24 @@ describe('sorting', async function () {
   });
 
   describe('sortCurrentDoneToBottom', async function () {
-    it('should sort the DONEs in nested-sortable.md to the bottom', async function () {
+    it('should sort the DONEs in the first section of nested-sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('nested-sortable.md');
       helpers.gotoLine(editor, 0);
       await vscode.commands.executeCommand('markdown-worklogs.sortCurrentDoneToBottom');
       await helpers.sleep(100);
       const fullText = editor.document.getText();
       const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('nested-sortable-sorted.md'));
+      const expectedSortedText = expectedSortedTextBuffer.toString();
+      assert.strictEqual(fullText, expectedSortedText);
+    });
+
+    it('should sort the DONEs in the second section of nested-sortable.md to the bottom', async function () {
+      const editor = await helpers.openExample('nested-sortable.md');
+      helpers.gotoLine(editor, 18);
+      await vscode.commands.executeCommand('markdown-worklogs.sortCurrentDoneToBottom');
+      await helpers.sleep(100);
+      const fullText = editor.document.getText();
+      const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('nested-sortable-sorted-take2.md'));
       const expectedSortedText = expectedSortedTextBuffer.toString();
       assert.strictEqual(fullText, expectedSortedText);
     });

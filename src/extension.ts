@@ -258,21 +258,29 @@ const getHeaderLevel = (block: Token): number => {
 };
 
 // Sort all of the top-level headers within the current header.
-// E.g. if your cursor is currently on a h2 header, sort all of the h3 headers between the top of this header
+// E.g. if your cursor is currently on a h2 header (or on a non-header line within an h2 header), sort all of the h3 headers between the top of this header
 // and the next h2 header
 const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
-  // Find the top of the current header
-  const lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: false });
-  if (lineIndex < 0) {
+  // Find the start of the current header
+  const startLine = findHeader(editor, { direction: -1, ignoreCurrent: false });
+  if (startLine < 0) {
     return;
   }
-
-  const lineText = editor.document.lineAt(lineIndex).text;
-  const { level } = getHeaderInfo(lineText);
+  let lineText = editor.document.lineAt(startLine).text;
+  let { level } = getHeaderInfo(lineText);
 
   // find the end of the current header by looking for the next header of the same level, ignoring the current line
+  // If we don't find a header of that level, we'll get -1 instead so set maxLine to the end of the file
   const nextHeaderIndex = findHeader(editor, { direction: 1, ignoreCurrent: true, exactLevel: level });
-  await moveDoneToBottom(editor, { minLine: lineIndex + 1, maxLine: nextHeaderIndex - 1, topLevel: false });
+
+  let maxLine: number;
+  if (nextHeaderIndex === -1) {
+    maxLine = editor.document.lineCount - 1;
+  } else {
+    maxLine = nextHeaderIndex - 1;
+  }
+
+  await moveDoneToBottom(editor, { minLine: startLine + 1, maxLine, topLevel: false });
 };
 
 // move all top-level DONE sections to the bottom of the file, maintaining their order
