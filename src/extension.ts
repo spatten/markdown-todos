@@ -165,9 +165,9 @@ let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLev
 
   if (headerLine >= 0) {
     const position = editor.selection.active;
-    var newPosition = new vscode.Position(headerLine, 0);
-    var newSelection: vscode.Selection;
-    var range: vscode.Range;
+    const newPosition = new vscode.Position(headerLine, 0);
+    let newSelection: vscode.Selection;
+    let range: vscode.Range;
     if (editor.selection.isEmpty) {
       newSelection = new vscode.Selection(newPosition, newPosition);
       range = new vscode.Range(newPosition, newPosition);
@@ -285,8 +285,8 @@ const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
 
 // move all top-level DONE sections to the bottom of the file, maintaining their order
 const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
-  let minLine = 0;
-  let maxLine = editor.document.lineCount - 1;
+  const minLine = 0;
+  const maxLine = editor.document.lineCount - 1;
   await moveDoneToBottom(editor, { minLine, maxLine, topLevel: true });
 };
 
@@ -296,7 +296,7 @@ const moveAllDoneToBottom = async function (editor: vscode.TextEditor) {
 // If topLevel is true, then search the whole file and sort h1 headers
 const moveDoneToBottom = async function (editor: vscode.TextEditor, params: { minLine: number, maxLine: number, topLevel: boolean }) {
   const { minLine, maxLine, topLevel } = params;
-  let parsed = getBlocks(editor);
+  const parsed = getBlocks(editor);
 
   const filterParams: FilterParams = { ignoreCurrent: false, minLine, maxLine };
   let headers = parsed.filter(block => headerFilter(block, filterParams));
