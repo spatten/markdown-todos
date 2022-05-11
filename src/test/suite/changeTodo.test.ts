@@ -10,13 +10,12 @@ const assertTodoStateAtLine = (editor: vscode.TextEditor, lineNumber: number, ex
 };
 
 describe('change TODO functions', async function () {
+  let editor: vscode.TextEditor;
+  beforeEach(async function () {
+    editor = await helpers.openExample('todos.md');
+  });
+
   describe('increaseTodo', async function () {
-
-    let editor: vscode.TextEditor;
-    beforeEach(async function () {
-      editor = await helpers.openExample('todos.md');
-    });
-
     afterEach(async () => {
       // we need to close the document so it gets reloaded fresh from the fixture for each test
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -109,10 +108,6 @@ describe('change TODO functions', async function () {
   });
 
   describe('decreaseTodo', async function () {
-    let editor: vscode.TextEditor;
-    beforeEach(async function () {
-      editor = await helpers.openExample('todos.md');
-    });
     it('should change the todo on the current line', async () => {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 0);
