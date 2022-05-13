@@ -7,7 +7,7 @@
     "vscode": "^1.64.0"
   },
   "license": "MIT",
-  "repository": "https://github.com/spatten/markdown-worklogs",
+  "repository": "https://github.com/spatten/vscode-markdown-worklogs",
   "categories": [
     "Other"
   ],
