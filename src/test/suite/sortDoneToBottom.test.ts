@@ -14,7 +14,7 @@ describe('sorting', function () {
     it('should sort the DONEs in sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('sortable.md');
       await vscode.commands.executeCommand('markdown-worklogs.sortDoneToBottom');
-      await helpers.sleep(100);
+      await helpers.sleep(300);
       const fullText = editor.document.getText();
       const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('sortable-sorted.md'));
       const expectedSortedText = expectedSortedTextBuffer.toString();
@@ -23,7 +23,7 @@ describe('sorting', function () {
     it('should sort the DONEs in another-sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('another-sortable.md');
       await vscode.commands.executeCommand('markdown-worklogs.sortDoneToBottom');
-      await helpers.sleep(100);
+      await helpers.sleep(300);
       const fullText = editor.document.getText();
       const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('another-sortable-sorted.md'));
       const expectedSortedText = expectedSortedTextBuffer.toString();
@@ -36,7 +36,7 @@ describe('sorting', function () {
       const editor = await helpers.openExample('nested-sortable.md');
       helpers.gotoLine(editor, 0);
       await vscode.commands.executeCommand('markdown-worklogs.sortCurrentDoneToBottom');
-      await helpers.sleep(100);
+      await helpers.sleep(300);
       const fullText = editor.document.getText();
       const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('nested-sortable-sorted.md'));
       const expectedSortedText = expectedSortedTextBuffer.toString();
@@ -47,7 +47,7 @@ describe('sorting', function () {
       const editor = await helpers.openExample('nested-sortable.md');
       helpers.gotoLine(editor, 18);
       await vscode.commands.executeCommand('markdown-worklogs.sortCurrentDoneToBottom');
-      await helpers.sleep(100);
+      await helpers.sleep(300);
       const fullText = editor.document.getText();
       const expectedSortedTextBuffer = await fs.promises.readFile(helpers.fixturePath('nested-sortable-sorted-take2.md'));
       const expectedSortedText = expectedSortedTextBuffer.toString();
