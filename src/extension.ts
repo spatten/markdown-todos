@@ -9,6 +9,11 @@ import Token = require('markdown-it/lib/token');
 const markdownParser = MarkdownIt();
 const TODO_TYPES = ["", "TODO", "DONE"];
 
+enum Direction {
+  up = 'up',
+  down = 'down',
+}
+
 type HeaderInfo = {
   leadingSpace: number;
   level: number;
@@ -137,7 +142,18 @@ const getBlocks = (editor: vscode.TextEditor): Token[] => {
   return markdownParser.parse(fullText, {});
 };
 
-const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = false, startLine, minLevel, exactLevel }: { direction: 1 | -1; ignoreCurrent: boolean; startLine?: number, minLevel?: number, exactLevel?: number }): number => {
+type FindHeaderParams = {
+  direction: Direction
+  ignoreCurrent: boolean;
+  startLine?: number;
+  minLevel?: number;
+  exactLevel?: number;
+};
+
+const findHeader = (
+  editor: vscode.TextEditor,
+  { direction = Direction.down, ignoreCurrent = false, startLine, minLevel, exactLevel }: FindHeaderParams
+): number => {
   let currentLine: number;
   if (startLine === undefined) {
     currentLine = editor.selection.active.line;
@@ -146,7 +162,7 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   }
   let parsed = getBlocks(editor);
   const filterParams: FilterParams = { ignoreCurrent, minLevel, exactLevel, currentLine };
-  if (direction === -1) {
+  if (direction === Direction.up) {
     parsed = parsed.reverse();
     filterParams.maxLine = currentLine;
   } else {
@@ -159,7 +175,13 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   return -1;
 };
 
-const gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
+type GotoHeaderParams = {
+  direction: Direction;
+  minLevel?: number;
+  exactLevel?: number;
+};
+
+const gotoHeader = (editor: vscode.TextEditor, params: GotoHeaderParams) => {
   const { direction, minLevel, exactLevel } = params;
   const headerLine = findHeader(editor, { direction, ignoreCurrent: true, minLevel, exactLevel });
 
@@ -172,7 +194,7 @@ const gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minL
       newSelection = new vscode.Selection(newPosition, newPosition);
       range = new vscode.Range(newPosition, newPosition);
     } else {
-      if (direction === -1) {
+      if (direction === Direction.up) {
         newSelection = new vscode.Selection(editor.selection.end, newPosition);
       } else {
         const headerText = editor.document.lineAt(headerLine).text;
@@ -185,8 +207,13 @@ const gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minL
   }
 };
 
-const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, change: -1 | 1) => {
-  const lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: false });
+enum TodoDirection {
+  prev = -1,
+  next = 1,
+}
+
+const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, change: TodoDirection) => {
+  const lineIndex = findHeader(editor, { direction: Direction.up, ignoreCurrent: false });
   if (lineIndex < 0) {
     return;
   }
@@ -262,7 +289,7 @@ const getHeaderLevel = (block: Token): number => {
 // and the next h2 header
 const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
   // Find the start of the current header
-  const startLine = findHeader(editor, { direction: -1, ignoreCurrent: false });
+  const startLine = findHeader(editor, { direction: Direction.up, ignoreCurrent: false });
   if (startLine < 0) {
     return;
   }
@@ -271,7 +298,7 @@ const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
 
   // find the end of the current header by looking for the next header of the same level, ignoring the current line
   // If we don't find a header of that level, we'll get -1 instead so set maxLine to the end of the file
-  const nextHeaderIndex = findHeader(editor, { direction: 1, ignoreCurrent: true, exactLevel: level });
+  const nextHeaderIndex = findHeader(editor, { direction: Direction.down, ignoreCurrent: true, exactLevel: level });
 
   let maxLine: number;
   if (nextHeaderIndex === -1) {
@@ -359,12 +386,12 @@ const getConfig = (param: string): string | undefined => vscode.workspace.getCon
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const increaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.increaseTodo', async (te, edit) => {
-    await changeTodo(te, edit, 1);
+    await changeTodo(te, edit, TodoDirection.next);
   });
   context.subscriptions.push(increaseTodo);
 
   const decreaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.decreaseTodo', async (te, edit) => {
-    await changeTodo(te, edit, -1);
+    await changeTodo(te, edit, TodoDirection.prev);
   });
   context.subscriptions.push(decreaseTodo);
 
@@ -422,22 +449,22 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(createNewWorklog);
 
   const gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
-    gotoHeader(te, { direction: -1 });
+    gotoHeader(te, { direction: Direction.up });
   });
   context.subscriptions.push(gotoPreviousHeader);
 
   const gotoNextHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextHeader', async (te) => {
-    gotoHeader(te, { direction: 1 });
+    gotoHeader(te, { direction: Direction.down });
   });
   context.subscriptions.push(gotoNextHeader);
 
   const gotoPreviousTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousTopLevelHeader', async (te) => {
-    gotoHeader(te, { direction: -1, exactLevel: 1 });
+    gotoHeader(te, { direction: Direction.up, exactLevel: 1 });
   });
   context.subscriptions.push(gotoPreviousTopLevelHeader);
 
   const gotoNextTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextTopLevelHeader', async (te) => {
-    gotoHeader(te, { direction: 1, exactLevel: 1 });
+    gotoHeader(te, { direction: Direction.down, exactLevel: 1 });
   });
   context.subscriptions.push(gotoNextTopLevelHeader);
 
