@@ -9,19 +9,19 @@ const assertTodoStateAtLine = (editor: vscode.TextEditor, lineNumber: number, ex
   assert.strictEqual(header.todoState, expectedState);
 };
 
-describe('change TODO functions', async function () {
+describe('change TODO functions', function () {
   let editor: vscode.TextEditor;
   beforeEach(async function () {
     editor = await helpers.openExample('todos.md');
   });
 
-  describe('increaseTodo', async function () {
-    afterEach(async () => {
+  describe('increaseTodo', function () {
+    afterEach(async function () {
       // we need to close the document so it gets reloaded fresh from the fixture for each test
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    it('should change the todo on the current line', async () => {
+    it('should change the todo on the current line', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 0);
 
@@ -38,7 +38,7 @@ describe('change TODO functions', async function () {
       assertTodoStateAtLine(editor, 0, 'TODO');
     });
 
-    it('should change the todo on the header above the current line', async () => {
+    it('should change the todo on the header above the current line', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 2);
 
@@ -55,19 +55,19 @@ describe('change TODO functions', async function () {
       assertTodoStateAtLine(editor, 0, 'TODO');
     });
 
-    context('with insertCompleteTimestamp on', async () => {
-      beforeEach(async () => {
+    context('with insertCompleteTimestamp on', function () {
+      beforeEach(async function () {
         await helpers.setConfig('markdown-worklogs.insertCompletionTimestamp', true);
       });
 
-      it('should insert the timestamp when going from TODO to DONE', async () => {
+      it('should insert the timestamp when going from TODO to DONE', async function () {
         helpers.gotoLine(editor, 0);
         await vscode.commands.executeCommand("markdown-worklogs.increaseTodo");
         const lineText = editor.document.lineAt(1).text;
         assert.match(lineText, /^\s*CLOSED:/);
       });
 
-      it('should remove the timestamp when going from DONE to ""', async () => {
+      it('should remove the timestamp when going from DONE to ""', async function () {
         helpers.gotoLine(editor, 0);
         // go from TODO => DONE
         await vscode.commands.executeCommand("markdown-worklogs.increaseTodo");
@@ -78,12 +78,12 @@ describe('change TODO functions', async function () {
       });
     });
 
-    context('with insertCompleteTimestamp off', async () => {
-      beforeEach(async () => {
+    context('with insertCompleteTimestamp off', function () {
+      beforeEach(async function () {
         await helpers.setConfig('markdown-worklogs.insertCompletionTimestamp', false);
       });
 
-      it('should not insert a timestamp when going from TODO to DONE', async () => {
+      it('should not insert a timestamp when going from TODO to DONE', async function () {
         helpers.setConfig('markdown-worklogs.insertCompletionTimestamp', false);
         helpers.gotoLine(editor, 0);
         await vscode.commands.executeCommand("markdown-worklogs.increaseTodo");
@@ -91,7 +91,7 @@ describe('change TODO functions', async function () {
         assert.match(lineText, /^This is/);
       });
 
-      it('should remove an existing timestamp when going from DONE to ""', async () => {
+      it('should remove an existing timestamp when going from DONE to ""', async function () {
         helpers.gotoLine(editor, 0);
         await helpers.setConfig('markdown-worklogs.insertCompletionTimestamp', true);
         // go from TODO => DONE, and set the timestamp
@@ -107,8 +107,8 @@ describe('change TODO functions', async function () {
     });
   });
 
-  describe('decreaseTodo', async function () {
-    it('should change the todo on the current line', async () => {
+  describe('decreaseTodo', function () {
+    it('should change the todo on the current line', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 0);
 
@@ -125,7 +125,7 @@ describe('change TODO functions', async function () {
       assertTodoStateAtLine(editor, 0, 'TODO');
     });
 
-    it('should change the todo on the header above the current line', async () => {
+    it('should change the todo on the header above the current line', async function () {
       // the top line is initially at TODO
       helpers.gotoLine(editor, 2);
 

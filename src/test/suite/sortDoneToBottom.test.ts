@@ -4,13 +4,13 @@ import * as vscode from 'vscode';
 import * as helpers from '../helpers';
 
 
-describe('sorting', async function () {
-  afterEach(async () => {
+describe('sorting', function () {
+  afterEach(async function () {
     // we need to close the document so it gets reloaded fresh from the fixture for each test
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  describe('sortDoneToBottom', async function () {
+  describe('sortDoneToBottom', function () {
     it('should sort the DONEs in sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('sortable.md');
       await vscode.commands.executeCommand('markdown-worklogs.sortDoneToBottom');
@@ -31,7 +31,7 @@ describe('sorting', async function () {
     });
   });
 
-  describe('sortCurrentDoneToBottom', async function () {
+  describe('sortCurrentDoneToBottom', function () {
     it('should sort the DONEs in the first section of nested-sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('nested-sortable.md');
       helpers.gotoLine(editor, 0);

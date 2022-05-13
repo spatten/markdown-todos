@@ -54,7 +54,7 @@ const insertCompletedAt = (editBuilder: vscode.TextEditorEdit, currentLine: numb
 };
 
 const deleteCompletedAt = (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, currentLine: number) => {
-  let lineText = editor.document.lineAt(currentLine + 1).text;
+  const lineText = editor.document.lineAt(currentLine + 1).text;
   if (lineText.match(/^\s*CLOSED: \[\d\d\d\d-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}\]\s*$/)) {
     editBuilder.delete(new vscode.Range(new vscode.Position(currentLine + 1, 0), new vscode.Position(currentLine + 2, 0)));
   }
@@ -159,7 +159,7 @@ const findHeader = (editor: vscode.TextEditor, { direction = 1, ignoreCurrent = 
   return -1;
 };
 
-let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
+const gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLevel?: number, exactLevel?: number }) => {
   const { direction, minLevel, exactLevel } = params;
   const headerLine = findHeader(editor, { direction, ignoreCurrent: true, minLevel, exactLevel });
 
@@ -186,12 +186,12 @@ let gotoHeader = (editor: vscode.TextEditor, params: { direction: 1 | -1, minLev
 };
 
 const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEditorEdit, change: -1 | 1) => {
-  let lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: false });
+  const lineIndex = findHeader(editor, { direction: -1, ignoreCurrent: false });
   if (lineIndex < 0) {
     return;
   }
 
-  let lineText = editor.document.lineAt(lineIndex).text;
+  const lineText = editor.document.lineAt(lineIndex).text;
   const { leadingSpace, level, trailingSpace, todoState: currentState, todoIndex: currentIndex } = getHeaderInfo(lineText);
 
   // find the next TODO word, looping around in either direction
@@ -236,7 +236,7 @@ const changeTodo = async (editor: vscode.TextEditor, editBuilder: vscode.TextEdi
 // We need to make our own edit builder here as we need to actually run each moveEntryToBottomedit before the next one is run
 const moveEntryToBottom = async (editor: vscode.TextEditor, doneEntry: [number, number], lastNonDONELine: number): Promise<number> => {
   let linesMoved = 0;
-  const res = await editor.edit((editBuilder) => {
+  await editor.edit((editBuilder) => {
     const replaceRange = new vscode.Range(new vscode.Position(doneEntry[0], 0), new vscode.Position(doneEntry[1] + 1, 0));
     const doneText = editor.document.getText(replaceRange);
     if (doneEntry[0] >= lastNonDONELine) {
@@ -266,8 +266,8 @@ const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
   if (startLine < 0) {
     return;
   }
-  let lineText = editor.document.lineAt(startLine).text;
-  let { level } = getHeaderInfo(lineText);
+  const lineText = editor.document.lineAt(startLine).text;
+  const { level } = getHeaderInfo(lineText);
 
   // find the end of the current header by looking for the next header of the same level, ignoring the current line
   // If we don't find a header of that level, we'll get -1 instead so set maxLine to the end of the file
@@ -358,17 +358,17 @@ const getConfig = (param: string): string | undefined => vscode.workspace.getCon
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  let increaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.increaseTodo', async (te, edit) => {
+  const increaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.increaseTodo', async (te, edit) => {
     await changeTodo(te, edit, 1);
   });
   context.subscriptions.push(increaseTodo);
 
-  let decreaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.decreaseTodo', async (te, edit) => {
+  const decreaseTodo = vscode.commands.registerTextEditorCommand('markdown-worklogs.decreaseTodo', async (te, edit) => {
     await changeTodo(te, edit, -1);
   });
   context.subscriptions.push(decreaseTodo);
 
-  let openCurrentWorklog = vscode.commands.registerCommand('markdown-worklogs.openCurrentWorklog', async () => {
+  const openCurrentWorklog = vscode.commands.registerCommand('markdown-worklogs.openCurrentWorklog', async () => {
     const worklogDir = getConfig('worklogDirectory');
     if (!worklogDir) {
       throw new Error("Please set your worklog directory in the markdown-worklogs extension settings");
@@ -377,7 +377,7 @@ export function activate(context: vscode.ExtensionContext) {
     const entries = await fs.promises.readdir(worklogDir);
     const workLogs = entries.filter(entry => entry.match(/^\d\d\d\d-\d\d-\d\d\.md$/));
     const currentLog = workLogs.sort().reverse()[0];
-    let uri = vscode.Uri.file(path.join(worklogDir, currentLog));
+    const uri = vscode.Uri.file(path.join(worklogDir, currentLog));
     await vscode.commands.executeCommand('vscode.open', uri);
     if (getConfig('foldCurrentWorklog')) {
       vscode.commands.executeCommand('editor.foldAll');
@@ -388,7 +388,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(openCurrentWorklog);
 
-  let createNewWorklog = vscode.commands.registerCommand('markdown-worklogs.createNewWorklog', async () => {
+  const createNewWorklog = vscode.commands.registerCommand('markdown-worklogs.createNewWorklog', async () => {
     const worklogDir = getConfig('worklogDirectory');
     if (!worklogDir) {
       throw new Error("Please set your worklog directory in the markdown-worklogs extension settings");
@@ -408,7 +408,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Open the file in VS Code
-    let uri = vscode.Uri.file(newLog);
+    const uri = vscode.Uri.file(newLog);
     await vscode.commands.executeCommand('vscode.open', uri);
 
     // Fold and pin it
@@ -421,37 +421,37 @@ export function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(createNewWorklog);
 
-  let gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
+  const gotoPreviousHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousHeader', async (te) => {
     gotoHeader(te, { direction: -1 });
   });
   context.subscriptions.push(gotoPreviousHeader);
 
-  let gotoNextHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextHeader', async (te) => {
+  const gotoNextHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextHeader', async (te) => {
     gotoHeader(te, { direction: 1 });
   });
   context.subscriptions.push(gotoNextHeader);
 
-  let gotoPreviousTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousTopLevelHeader', async (te) => {
+  const gotoPreviousTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoPreviousTopLevelHeader', async (te) => {
     gotoHeader(te, { direction: -1, exactLevel: 1 });
   });
   context.subscriptions.push(gotoPreviousTopLevelHeader);
 
-  let gotoNextTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextTopLevelHeader', async (te) => {
+  const gotoNextTopLevelHeader = vscode.commands.registerTextEditorCommand('markdown-worklogs.gotoNextTopLevelHeader', async (te) => {
     gotoHeader(te, { direction: 1, exactLevel: 1 });
   });
   context.subscriptions.push(gotoNextTopLevelHeader);
 
-  let sortDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortDoneToBottom', async (te) => {
+  const sortDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortDoneToBottom', async (te) => {
     moveAllDoneToBottom(te);
   });
   context.subscriptions.push(sortDoneToBottom);
 
-  let sortCurrentDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortCurrentDoneToBottom', async (te) => {
+  const sortCurrentDoneToBottom = vscode.commands.registerTextEditorCommand('markdown-worklogs.sortCurrentDoneToBottom', async (te) => {
     moveCurrentDoneToBottom(te);
   });
   context.subscriptions.push(sortCurrentDoneToBottom);
 
-  let findInWorklogs = vscode.commands.registerCommand('markdown-worklogs.findInWorklogs', async () => {
+  const findInWorklogs = vscode.commands.registerCommand('markdown-worklogs.findInWorklogs', async () => {
     const editor = vscode.window.activeTextEditor;
     let searchText = '';
     if (editor && !editor.selection.isEmpty) {
