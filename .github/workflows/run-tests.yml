@@ -4,7 +4,7 @@ on:
     branches:
       - main
 jobs:
-  build:
+  run-tests:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
