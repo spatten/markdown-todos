@@ -5,10 +5,6 @@ on:
       - main
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -17,7 +13,5 @@ jobs:
       with:
         node-version: 16.14.x
     - run: npm install
-    - run: xvfb-run -a npm test
+    - run: npm run lint:strict
       if: runner.os == 'Linux'
-    - run: npm test
-      if: runner.os != 'Linux'
