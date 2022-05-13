@@ -285,8 +285,8 @@ const getHeaderLevel = (block: Token): number => {
 };
 
 // Sort all of the top-level headers within the current header.
-// E.g. if your cursor is currently on a h2 header (or on a non-header line within an h2 header), sort all of the h3 headers between the top of this header
-// and the next h2 header
+// E.g. if your cursor is currently on a h2 header (or on a non-header line within an h2 header),
+// sort all of the h3 headers between the top of this header and the next h2 header
 const moveCurrentDoneToBottom = async function (editor: vscode.TextEditor) {
   // Find the start of the current header
   const startLine = findHeader(editor, { direction: Direction.up, ignoreCurrent: false });
