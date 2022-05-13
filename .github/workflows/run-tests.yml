@@ -1,10 +1,11 @@
+name: tests
 on:
   pull_request:
   push:
     branches:
       - main
 jobs:
-  build:
+  run-tests:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -21,5 +22,3 @@ jobs:
       if: runner.os == 'Linux'
     - run: npm test
       if: runner.os != 'Linux'
-    - run: npm run lint:strict
-      if: runner.os == 'Linux'
