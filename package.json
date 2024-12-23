@@ -22,7 +22,9 @@
     "onCommand:markdown-worklogs.gotoNextTopLevelHeader",
     "onCommand:markdown-worklogs.sortDoneToBottom",
     "onCommand:markdown-worklogs.sortCurrentDoneToBottom",
-    "onCommand:markdown-worklogs.findInWorklogs"
+    "onCommand:markdown-worklogs.findInWorklogs",
+    "onCommand:markdown-worklogs.copyCurrentCodeblock",
+    "onCommand:markdown-worklogs.selectCurrentCodeblock"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -123,6 +125,14 @@
       {
         "command": "markdown-worklogs.findInWorklogs",
         "title": "Markdown Work Logs: search in your worklogs"
+      },
+      {
+        "command": "markdown-worklogs.selectCurrentCodeblock",
+        "title": "Markdown Work Logs: select the current codeblock"
+      },
+      {
+        "command": "markdown-worklogs.copyCurrentCodeblock",
+        "title": "Markdown Work Logs: copy the text of the current codeblock"
       }
     ],
     "keybindings": [

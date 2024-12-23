@@ -380,6 +380,59 @@ const moveDoneToBottom = async function (editor: vscode.TextEditor, params: { mi
   }
 };
 
+const currentCodeblock = (editor: vscode.TextEditor): Token | undefined => {
+  const currentLine = editor.selection.active.line;
+  console.log(`looking for codeblocks at line ${currentLine}`);
+  const parsed = getBlocks(editor);
+  const codeblock = parsed.find(block => codeblockFilter(block, { currentLine }));
+  return codeblock;
+};
+
+type CodeBlockFilterParams = {
+  currentLine: number;
+};
+
+const codeblockFilter = (block: Token, params: CodeBlockFilterParams): boolean => {
+  const { currentLine } = params;
+  console.log(`block type: ${block.type}`);
+  if (block.type !== 'fence') {
+    return false;
+  }
+  if (!block.map) {
+    return false;
+  }
+  const [startLine, endLine] = block.map;
+  console.log(`current: ${currentLine}, start: ${startLine}, end: ${endLine}`);
+  return startLine <= currentLine && endLine >= currentLine;
+};
+
+const copyCurrentCodeblock = async (editor: vscode.TextEditor) => {
+  const codeblock = currentCodeblock(editor);
+  console.log(`current codeblock: ${JSON.stringify(codeblock)}`);
+  if (!codeblock) {
+    return;
+  }
+  console.log(`content: ${codeblock.content}`);
+  // const code = editor.document.getText(new vscode.Range(codeblock.start, codeblock.end));
+  await vscode.env.clipboard.writeText(codeblock.content);
+};
+
+const selectCurrentCodeblock = async (editor: vscode.TextEditor) => {
+  const codeblock = currentCodeblock(editor);
+  if (!codeblock) {
+    return;
+  }
+  if (!codeblock.map) {
+    return;
+  }
+  const [startLine, endLine] = codeblock.map;
+  const realStart = startLine + 1;
+  const realEnd = endLine > 2 ? endLine - 2 : endLine;
+  const lastLine = editor.document.lineAt(realEnd).text;
+
+  editor.selection = new vscode.Selection(new vscode.Position(realStart, 0), new vscode.Position(realEnd, lastLine.length));
+};
+
 const getConfig = (param: string): string | undefined => vscode.workspace.getConfiguration('markdown-worklogs').get(param);
 
 // this method is called when your extension is activated
@@ -501,6 +554,16 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
   context.subscriptions.push(findInWorklogs);
+
+  const copyCodeblock = vscode.commands.registerTextEditorCommand('markdown-worklogs.copyCurrentCodeblock', async (te) => {
+    await copyCurrentCodeblock(te);
+  });
+  context.subscriptions.push(copyCodeblock);
+
+  const selectCodeblock = vscode.commands.registerTextEditorCommand('markdown-worklogs.selectCurrentCodeblock', async (te) => {
+    await selectCurrentCodeblock(te);
+  });
+  context.subscriptions.push(selectCodeblock);
 }
 
 // this method is called when your extension is deactivated

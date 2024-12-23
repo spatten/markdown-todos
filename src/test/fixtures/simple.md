@@ -11,10 +11,10 @@
 Some text
 
 ```ruby
-# this is a comment, not a header
-def foo
-  'foo'
-end
+  # this is a comment, not a header
+  def foo
+    'foo'
+  end
 ```
 
 # 2
