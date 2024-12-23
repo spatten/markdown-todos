@@ -132,7 +132,7 @@
       },
       {
         "command": "markdown-worklogs.copyCurrentCodeblock",
-        "title": "Markdown Work Logs: copy the text of the current codeblock"
+        "title": "Markdown Work Logs: copy the current codeblock to the clipboard"
       }
     ],
     "keybindings": [
