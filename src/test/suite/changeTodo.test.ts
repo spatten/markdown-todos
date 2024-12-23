@@ -11,6 +11,7 @@ const assertTodoStateAtLine = (editor: vscode.TextEditor, lineNumber: number, ex
 
 describe('change TODO functions', function () {
   let editor: vscode.TextEditor;
+
   beforeEach(async function () {
     editor = await helpers.openExample('todos.md');
   });
