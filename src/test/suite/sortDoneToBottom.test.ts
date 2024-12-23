@@ -20,6 +20,7 @@ describe('sorting', function () {
       const expectedSortedText = expectedSortedTextBuffer.toString();
       assert.strictEqual(fullText, expectedSortedText);
     });
+
     it('should sort the DONEs in another-sortable.md to the bottom', async function () {
       const editor = await helpers.openExample('another-sortable.md');
       await vscode.commands.executeCommand('markdown-worklogs.sortDoneToBottom');

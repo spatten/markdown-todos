@@ -4,6 +4,7 @@ import * as helpers from '../helpers';
 
 describe('goto header functions', function () {
   let editor: vscode.TextEditor;
+
   before(async function () {
     editor = await helpers.openExample('simple.md', { lineNumber: 23 });
   });
