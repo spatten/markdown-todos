@@ -2,7 +2,7 @@
   "name": "markdown-worklogs",
   "displayName": "markdown-worklogs",
   "description": "Top-level TODO and DONE on your markdown headers",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.64.0"
   },
@@ -22,7 +22,9 @@
     "onCommand:markdown-worklogs.gotoNextTopLevelHeader",
     "onCommand:markdown-worklogs.sortDoneToBottom",
     "onCommand:markdown-worklogs.sortCurrentDoneToBottom",
-    "onCommand:markdown-worklogs.findInWorklogs"
+    "onCommand:markdown-worklogs.findInWorklogs",
+    "onCommand:markdown-worklogs.copyCurrentCodeblock",
+    "onCommand:markdown-worklogs.selectCurrentCodeblock"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -123,6 +125,14 @@
       {
         "command": "markdown-worklogs.findInWorklogs",
         "title": "Markdown Work Logs: search in your worklogs"
+      },
+      {
+        "command": "markdown-worklogs.selectCurrentCodeblock",
+        "title": "Markdown Work Logs: select the current codeblock"
+      },
+      {
+        "command": "markdown-worklogs.copyCurrentCodeblock",
+        "title": "Markdown Work Logs: copy the current codeblock to the clipboard"
       }
     ],
     "keybindings": [
@@ -148,7 +158,7 @@
     "lint:strict": "eslint src --ext ts --rule 'mocha/no-exclusive-tests: 2' --rule 'no-undef: 2' --rule 'no-console: 2'",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "vsce package"
+    "package": "vsce package --no-yarn"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
