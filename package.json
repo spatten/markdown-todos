@@ -158,7 +158,7 @@
     "lint:strict": "eslint src --ext ts --rule 'mocha/no-exclusive-tests: 2' --rule 'no-undef: 2' --rule 'no-console: 2'",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "vsce package"
+    "package": "vsce package --no-yarn"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
