@@ -382,7 +382,6 @@ const moveDoneToBottom = async function (editor: vscode.TextEditor, params: { mi
 
 const currentCodeblock = (editor: vscode.TextEditor): Token | undefined => {
   const currentLine = editor.selection.active.line;
-  console.log(`looking for codeblocks at line ${currentLine}`);
   const parsed = getBlocks(editor);
   const codeblock = parsed.find(block => codeblockFilter(block, { currentLine }));
   return codeblock;
@@ -394,7 +393,6 @@ type CodeBlockFilterParams = {
 
 const codeblockFilter = (block: Token, params: CodeBlockFilterParams): boolean => {
   const { currentLine } = params;
-  console.log(`block type: ${block.type}`);
   if (block.type !== 'fence') {
     return false;
   }
@@ -402,17 +400,14 @@ const codeblockFilter = (block: Token, params: CodeBlockFilterParams): boolean =
     return false;
   }
   const [startLine, endLine] = block.map;
-  console.log(`current: ${currentLine}, start: ${startLine}, end: ${endLine}`);
   return startLine <= currentLine && endLine >= currentLine;
 };
 
 const copyCurrentCodeblock = async (editor: vscode.TextEditor) => {
   const codeblock = currentCodeblock(editor);
-  console.log(`current codeblock: ${JSON.stringify(codeblock)}`);
   if (!codeblock) {
     return;
   }
-  console.log(`content: ${codeblock.content}`);
   // const code = editor.document.getText(new vscode.Range(codeblock.start, codeblock.end));
   await vscode.env.clipboard.writeText(codeblock.content);
 };
