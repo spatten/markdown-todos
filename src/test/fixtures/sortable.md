@@ -1,4 +1,4 @@
-# TODO foo and bar
+# DONE foo and bar
 this is some stufff
 # DONE nice (2,3)
 and stuff
