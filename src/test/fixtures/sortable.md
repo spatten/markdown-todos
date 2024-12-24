@@ -12,5 +12,5 @@ and whatever yeah
 # nothing at all
 to see here
 # DONE bar (9, 9)
-# TODO and here -- last non-done-line should be here, line 14
+# TODO and here -- last non-done-line should be here, line 7
 # DONE baz (11, 12)
